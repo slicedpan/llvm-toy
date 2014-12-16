@@ -27,7 +27,7 @@ namespace LLVMToy {
     TOKEN_TYPE_ENTRY(IntegerLiteral),
     TOKEN_TYPE_ENTRY(FloatLiteral),
     TOKEN_TYPE_ENTRY(StringLiteral),
-    TOKEN_TYPE_ENTRY(KeywordExtern),
+    TOKEN_TYPE_ENTRY(KeywordDef),
     TOKEN_TYPE_ENTRY(KeywordExtern),
     TOKEN_TYPE_ENTRY(Identifier)
   };

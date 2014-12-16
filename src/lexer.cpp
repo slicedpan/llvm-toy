@@ -13,7 +13,7 @@ namespace LLVMToy {
 
   void Lexer::print_tokens() {    
     for (auto iter = tokens.begin(); iter != tokens.end(); ++iter) { 
-      cout << *iter;         
+      cout << *iter << std::endl;         
     }
   }
 
@@ -39,26 +39,30 @@ namespace LLVMToy {
     tok.content = content;
     
     std::size_t pos = 0;
-    if (content.compare("def")) {
+    if (content.compare("def") == 0) {
       tok.type = TokenType::KeywordDef;
       return tok;
     }
-    else if (content.compare("extern")) {
+    else if (content.compare("extern") == 0) {
       tok.type = TokenType::KeywordExtern;
       return tok;
     }
 
-    tok.int_val = std::stoll(content, &pos, 0);
-    if (pos == content.length()) {
-      tok.type = TokenType::IntegerLiteral;
-      return tok;
-    }
+    try {
+      tok.int_val = std::stoll(content, &pos, 0);
+      if (pos == content.length()) {
+        tok.type = TokenType::IntegerLiteral;
+        return tok;
+      }
+    } catch (std::invalid_argument) {}
 
-    tok.float_val = std::stod(content, &pos);
-    if (pos == content.length()) {
-      tok.type = TokenType::FloatLiteral;
-      return tok;
-    }
+    try {
+      tok.float_val = std::stod(content, &pos);
+      if (pos == content.length()) {
+        tok.type = TokenType::FloatLiteral;
+        return tok;
+      }
+    } catch (std::invalid_argument) {}
 
     tok.type = TokenType::StringLiteral;    
     return tok;
