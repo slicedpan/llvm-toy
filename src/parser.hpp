@@ -4,12 +4,15 @@
 #include <vector>
 #include <string>
 
+#include "namespace.hpp"
+#include "token.hpp"
 #include "abstract_syntax_tree.hpp"
 
 namespace LLVMToy {
   class Parser {
     public:
-      void parse(const std::vector<std::string>& tokens);
+      void parse(const vector<Token>& tokens);
+      AbstractSyntaxTree& get_abstract_syntax_tree();
     private:
       AbstractSyntaxTree ast;
   };
