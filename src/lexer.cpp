@@ -6,8 +6,31 @@
 
 #include "namespace.hpp"
 #include "lexer.hpp"
+#include "token.hpp"
 
 using boost::format;
+
+void lexer_input(char*, void*);
+
+void lexer_add_integer(void* userdata, char* content) {
+  auto tokens = (std::vector<LLVMToy::Token>*)userdata;
+  LLVMToy::Token tok;
+  tok.type = LLVMToy::TokenType::IntegerLiteral;
+  tok.content = content;
+  tok.int_val = std::stoll(content);
+  tokens->push_back(tok);
+}
+
+void lexer_add_float(void* userdata, char* content) {
+  auto tokens = (std::vector<LLVMToy::Token>*)userdata;
+  LLVMToy::Token tok;
+  tok.type = LLVMToy::TokenType::FloatLiteral;
+  tok.content = content;
+  tok.float_val = std::stod(content);
+  tokens->push_back(tok);
+}
+
+
 
 namespace LLVMToy {
 
@@ -23,49 +46,15 @@ namespace LLVMToy {
 
   void Lexer::lex_file(const string& filename) {
     std::ifstream file_stream(filename);
-    string line;
-    boost::char_separator<char> sep(" ");    
+    file_stream.seekg(0, file_stream.end);
+    int length = file_stream.tellg();
+    file_stream.seekg(0, file_stream.beg);
 
-    while (std::getline(file_stream, line)) {
-      boost::tokenizer<boost::char_separator<char> > tok(line, sep);
-      for (auto iter = tok.begin(); iter != tok.end(); ++iter) {
-        tokens.push_back(lex_token(*iter));
-      }      
-    }
-  }
-
-  Token Lexer::lex_token(const string& content) {
-    Token tok;
-    tok.content = content;
-    
-    std::size_t pos = 0;
-    if (content.compare("def") == 0) {
-      tok.type = TokenType::KeywordDef;
-      return tok;
-    }
-    else if (content.compare("extern") == 0) {
-      tok.type = TokenType::KeywordExtern;
-      return tok;
-    }
-
-    try {
-      tok.int_val = std::stoll(content, &pos, 0);
-      if (pos == content.length()) {
-        tok.type = TokenType::IntegerLiteral;
-        return tok;
-      }
-    } catch (std::invalid_argument) {}
-
-    try {
-      tok.float_val = std::stod(content, &pos);
-      if (pos == content.length()) {
-        tok.type = TokenType::FloatLiteral;
-        return tok;
-      }
-    } catch (std::invalid_argument) {}
-
-    tok.type = TokenType::StringLiteral;    
-    return tok;
+    char* buffer = new char[length];
+    file_stream.read(buffer, length);
+    file_stream.close();
+    lexer_input(buffer, &(this->tokens));
+    delete[] buffer;
   }
 
 }
