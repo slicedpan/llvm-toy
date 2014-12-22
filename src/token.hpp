@@ -17,7 +17,8 @@ namespace LLVMToy {
     StringLiteral,
     KeywordDef,
     KeywordExtern,
-    Identifier
+    Identifier,
+    Operator
   };
 
   const auto TokenTypeNames = std::map<TokenType, string>{
@@ -29,7 +30,8 @@ namespace LLVMToy {
     TOKEN_TYPE_ENTRY(StringLiteral),
     TOKEN_TYPE_ENTRY(KeywordDef),
     TOKEN_TYPE_ENTRY(KeywordExtern),
-    TOKEN_TYPE_ENTRY(Identifier)
+    TOKEN_TYPE_ENTRY(Identifier),
+    TOKEN_TYPE_ENTRY(Operator)
   };
 
   struct Token {
