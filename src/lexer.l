@@ -23,7 +23,6 @@ void* p;
 
 %}
 
-
 DIGIT [0-9]
 ALPHANUMERIC [a-zA-Z0-9]
 %option noyywrap
@@ -34,7 +33,7 @@ ALPHANUMERIC [a-zA-Z0-9]
 def { LexerFunctions::add_keyword_def(p, yytext); }
 extern { LexerFunctions::add_keyword_extern(p, yytext); }
 "+"|"-"|"/"|"*"|"=" { LexerFunctions::add_operator(p, yytext); }
-\"[^\"]\" { LexerFunctions::add_string(p, yytext); }
+\"(\\.|[^"])*\" { LexerFunctions::add_string(p, yytext); }
 {ALPHANUMERIC}+ { LexerFunctions::add_identifier(p, yytext); }
 [\n\r]+ { }
 
