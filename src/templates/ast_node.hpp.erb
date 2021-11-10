@@ -1,0 +1,25 @@
+#ifndef <%= name.upcase %>_HPP
+#define <%= name.upcase %>_HPP
+
+#include "../ast_node.hpp"
+#include "../token.hpp"
+#include "../expression.hpp"
+#include "../statement.hpp"
+#include <vector>
+
+namespace LLVMToy {
+  class <%= class_name %> : public ASTNode {
+    public:
+      <%= class_name %>(<%= fields.map{ |field_name, type| "#{type} #{field_name}" }.join(', ') %>) {
+        <% fields.each do |field_name, type| %>
+        this-><%= field_name %> = <%= field_name %>;
+        <% end %>
+      }
+    private:
+      <% fields.each do |field_name, type| %>
+      <%= type %> <%= field_name %>;
+      <% end %>
+  };
+}
+
+#endif

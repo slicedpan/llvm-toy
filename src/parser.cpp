@@ -8,7 +8,7 @@ namespace LLVMToy {
     "-",
     "/",
     "*",
-    ":="
+    "="
   };
 
   const std::string keywords[] = {

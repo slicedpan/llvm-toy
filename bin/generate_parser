@@ -1,0 +1,43 @@
+#!/usr/bin/env ruby
+
+require "yaml"
+require "erb"
+
+def pascal_case(str)
+  str.split("_").map{ |p| p.capitalize }.join
+end
+
+data_dir = File.expand_path("../src/data", __dir__)
+output_dir = File.expand_path("../src/generated", __dir__)
+template_dir = File.expand_path("../src/templates", __dir__)
+
+token_types = YAML.load_file(File.join(data_dir, "tokens.yml"))
+
+template = File.read(File.join(template_dir, "lexer.l.erb"))
+lexer_src = ERB.new(template).result_with_hash(:token_types => token_types)
+File.open(File.join(output_dir, "lexer.l"), "w"){ |f| f.write(lexer_src) }
+
+template = File.read(File.join(template_dir, "token_types.hpp.erb"))
+token_type_header_src = ERB.new(template).result_with_hash(
+  :token_names => token_types.keys.map{ |k| pascal_case(k) }
+)
+File.open(File.join(output_dir, "token_types.hpp"), "w"){ |f| f.write(token_type_header_src) }
+
+template = File.read(File.join(template_dir, "lexer_functions.cpp.erb"))
+lexer_functions_src = ERB.new(template).result(binding)
+File.open(File.join(output_dir, "lexer_functions.cpp"), "w"){ |f| f.write(lexer_functions_src) }
+
+ast_node_types = YAML.load_file(File.join(data_dir, "ast_nodes.yml"))
+template = File.read(File.join(template_dir, "ast_node.hpp.erb"))
+ast_node_types["statements"].each do |name, field_description|
+  class_name = pascal_case(name)
+  fields = field_description.split(",").map{ |desc_part| desc_part.split("|") }.to_h
+  filename = "#{name}.hpp"
+  File.open(File.join(output_dir, filename), "w") do |f|
+    f.write(ERB.new(template).result_with_hash(
+      :name => name,
+      :class_name => class_name,
+      :fields => fields      
+    ))
+  end
+end

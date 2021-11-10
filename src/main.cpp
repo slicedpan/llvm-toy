@@ -8,6 +8,6 @@ int main(int argc, char** argv) {
   LLVMToy::Parser parser;
   lexer.lex_file(argv[1]);
   lexer.print_tokens();
-  parser.parse(lexer.get_tokens());
+  //parser.parse(lexer.get_tokens());
   std::cout << "finished" << std::endl;
 }

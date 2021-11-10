@@ -1,0 +1,19 @@
+#ifndef SRC_TOKEN_TYPES_HPP
+#define SRC_TOKEN_TYPES_HPP
+
+#define TOKEN_TYPE_ENTRY(name) {name, #name}
+
+#include "../namespace.hpp"
+#include <map>
+
+namespace LLVMToy {
+
+  enum TokenType { <%= token_names.join(",") %> };
+
+  const auto TokenTypeNames = std::map<TokenType, string>{
+    <%= token_names.map{ |token_name| "{#{token_name}, \"#{token_name}\"}" }.join(",") %>
+  };
+
+} //namespace
+
+#endif

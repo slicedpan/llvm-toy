@@ -4,41 +4,15 @@
 #define TOKEN_TYPE_ENTRY(name) {name, #name}
 
 #include "namespace.hpp"
+#include "generated/token_types.hpp"
 #include <map>
 
-namespace LLVMToy {
-
-  enum TokenType {
-    Unknown,
-    EndOfFile,
-    EndOfLine,
-    IntegerLiteral,
-    FloatLiteral,
-    StringLiteral,
-    KeywordDef,
-    KeywordExtern,
-    Identifier,
-    Operator
-  };
-
-  const auto TokenTypeNames = std::map<TokenType, string>{
-    TOKEN_TYPE_ENTRY(Unknown),
-    TOKEN_TYPE_ENTRY(EndOfLine),
-    TOKEN_TYPE_ENTRY(EndOfFile),
-    TOKEN_TYPE_ENTRY(IntegerLiteral),
-    TOKEN_TYPE_ENTRY(FloatLiteral),
-    TOKEN_TYPE_ENTRY(StringLiteral),
-    TOKEN_TYPE_ENTRY(KeywordDef),
-    TOKEN_TYPE_ENTRY(KeywordExtern),
-    TOKEN_TYPE_ENTRY(Identifier),
-    TOKEN_TYPE_ENTRY(Operator)
-  };
+namespace LLVMToy {  
 
   struct Token {
-    TokenType type;    
-    string content;    
-    int64_t int_val;
-    double float_val;
+    TokenType type;
+    int line_number;    
+    string content;
   };
 
   ostream& operator<<(ostream& os, const Token& obj);

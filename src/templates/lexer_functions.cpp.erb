@@ -1,0 +1,26 @@
+#include <iostream>
+#include <fstream>
+
+#include "boost/format.hpp"
+#include "boost/tokenizer.hpp"
+
+#include "../namespace.hpp"
+#include "../lexer.hpp"
+#include "../token.hpp"
+
+using boost::format;
+
+namespace LexerFunctions {
+  typedef std::vector<LLVMToy::Token>* tokens_ptr;
+
+  <% token_types.keys.each do |token_type| %>
+  void add_<%= token_type %>(void* userdata, char* content, int line_number) {
+    auto tokens = (tokens_ptr)userdata;
+    LLVMToy::Token tok;
+    tok.type = LLVMToy::TokenType::<%= pascal_case(token_type) %>;
+    tok.line_number = line_number;
+    tok.content.assign(content);
+    tokens->push_back(tok);
+  }
+  <% end %>
+}

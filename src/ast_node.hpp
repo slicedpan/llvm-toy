@@ -3,7 +3,7 @@
 
 namespace LLVMToy {
   class ASTNode {
-    virtual ~ASTNode();
+
   };
 }
 

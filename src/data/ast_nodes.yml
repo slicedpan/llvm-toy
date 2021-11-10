@@ -1,0 +1,14 @@
+statements:
+  variable_declaration: "name|Token,initializer|Expression"
+  function_declaration: "name|Token,arguments|std::vector<Token>,body|std::vector<Statement>"
+  if_statement: "condition|Expression,body|std::vector<Statement>,else_branch|std::vector<Statement>"
+  return_statement: ""
+expressions:
+  grouping: "Expression|Expression"
+  binary_operator: "left|Expression,right|Expression"
+  unary_operator: "Expression|Expression"
+  assignment: "left|Expression,right|Expression"
+  integer_literal: "value|int64_t"
+  floating_point_literal: "value|double"
+
+  
