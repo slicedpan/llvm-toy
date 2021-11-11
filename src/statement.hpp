@@ -3,7 +3,10 @@
 
 namespace LLVMToy {
   class Statement {
-
+    public:    
+      virtual void debug_print(int indent);
+    protected:
+      void tab(int count);
   };
 }
 

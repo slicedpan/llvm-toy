@@ -8,13 +8,8 @@
 #include <vector>
 
 namespace LLVMToy {
-  class ReturnStatement : public ASTNode {
-    public:
-      ReturnStatement() {
-        
-      }
-    private:
-      
+  class ReturnStatement : public Statement {
+    
   };
 }
 

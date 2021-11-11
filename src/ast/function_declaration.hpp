@@ -8,25 +8,22 @@
 #include <vector>
 
 namespace LLVMToy {
-  class FunctionDeclaration : public ASTNode {
+  class FunctionDeclaration : public Statement {
     public:
-      FunctionDeclaration(Token name, std::vector<Token> arguments, std::vector<Statement> body) {
-        
+      FunctionDeclaration(const Token& name, const std::vector<Token>& arguments, std::vector<Statement*> body) {        
         this->name = name;
-        
         this->arguments = arguments;
-        
         this->body = body;
-        
       }
-    private:
-      
+      ~FunctionDeclaration() {
+        for (auto iter = body.begin(); iter != body.end(); ++iter) {
+          delete *iter;
+        }
+      }
+    private:      
       Token name;
-      
       std::vector<Token> arguments;
-      
-      std::vector<Statement> body;
-      
+      std::vector<Statement*> body;
   };
 }
 

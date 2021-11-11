@@ -1,12 +1,1 @@
-var foo = bar
-function blah() {
-
-}
-
-formula = 2
-1 + 1
-thing = 3
-thing + 5
-more = "dfl
-sdfds"{}
-foo = 0.1
+a = b + 2

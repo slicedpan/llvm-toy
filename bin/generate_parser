@@ -19,25 +19,10 @@ File.open(File.join(output_dir, "lexer.l"), "w"){ |f| f.write(lexer_src) }
 
 template = File.read(File.join(template_dir, "token_types.hpp.erb"))
 token_type_header_src = ERB.new(template).result_with_hash(
-  :token_names => token_types.keys.map{ |k| pascal_case(k) }
+  :token_names => token_types.keys.map{ |k| pascal_case(k) } + ["EndOfFile"]
 )
 File.open(File.join(output_dir, "token_types.hpp"), "w"){ |f| f.write(token_type_header_src) }
 
 template = File.read(File.join(template_dir, "lexer_functions.cpp.erb"))
 lexer_functions_src = ERB.new(template).result(binding)
 File.open(File.join(output_dir, "lexer_functions.cpp"), "w"){ |f| f.write(lexer_functions_src) }
-
-ast_node_types = YAML.load_file(File.join(data_dir, "ast_nodes.yml"))
-template = File.read(File.join(template_dir, "ast_node.hpp.erb"))
-ast_node_types["statements"].each do |name, field_description|
-  class_name = pascal_case(name)
-  fields = field_description.split(",").map{ |desc_part| desc_part.split("|") }.to_h
-  filename = "#{name}.hpp"
-  File.open(File.join(output_dir, filename), "w") do |f|
-    f.write(ERB.new(template).result_with_hash(
-      :name => name,
-      :class_name => class_name,
-      :fields => fields      
-    ))
-  end
-end

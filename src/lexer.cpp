@@ -32,10 +32,16 @@ namespace LLVMToy {
     int length = file_stream.tellg();
     file_stream.seekg(0, file_stream.beg);
 
-    char* buffer = new char[length];
+    char* buffer = new char[length + 1];
     file_stream.read(buffer, length);
     file_stream.close();
+    buffer[length] = '\0';
     LexerFunctions::input(buffer, &(this->tokens));
+    Token last_token;
+    last_token.line_number = -1;
+    last_token.type = TokenType::EndOfFile;
+    last_token.content = "";
+    tokens.push_back(last_token);
     delete[] buffer;
   }
 

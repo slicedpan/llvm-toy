@@ -7,14 +7,36 @@
 #include "namespace.hpp"
 #include "token.hpp"
 #include "abstract_syntax_tree.hpp"
+#include "statement.hpp"
+#include "expression.hpp"
+#include "parser_precedence.hpp"
 
 namespace LLVMToy {
   class Parser {
     public:
-      void parse(const vector<Token>& tokens);
-      AbstractSyntaxTree& get_abstract_syntax_tree();
+      Parser(const vector<Token>& tokens) : tokens(tokens) {}
+      void parse();
+      const std::vector<Statement*> get_statements();
+      void debug_print();
     private:
-      AbstractSyntaxTree ast;
+      Statement* parse_variable_declaration();
+      Statement* parse_function_declaration();
+      Statement* parse_statement();
+      Expression* parse_expression(int);
+      Expression* parse_unary_expression(int);
+      Expression* parse_binary_expression(int);
+      Expression* parse_parenthesised_expression(int);
+      Expression* parse_literal(int);
+      Expression* parse_identifier(int);
+      Statement* parse_expression_statement();
+      vector<Statement*> parse_block();
+      const Token& consume();
+      const Token& peek();
+      const Token& consume_type(TokenType, string);
+      bool match(TokenType);
+      int token_index = 0;
+      const vector<Token>& tokens;
+      vector<Statement*> statements;
   };
 }
 

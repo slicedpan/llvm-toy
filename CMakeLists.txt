@@ -20,7 +20,8 @@ add_executable(bin/llvm-test
 src/main.cpp 
 src/parser.cpp 
 src/lexer.cpp 
-src/token.cpp 
-src/integer_literal_node.cpp
+src/token.cpp
 src/generated/lexer_functions.cpp
+src/statement.cpp
+src/expression.cpp
 ${FLEX_Lexer_OUTPUTS})

@@ -19,11 +19,25 @@ void add_keyword_break(void*, char*, int);
 
 void add_keywork_for(void*, char*, int);
 
-void add_floating_point_literal(void*, char*, int);
+void add_boolean(void*, char*, int);
+
+void add_floating_point(void*, char*, int);
 
 void add_integer(void*, char*, int);
 
-void add_operator(void*, char*, int);
+void add_operator_equals(void*, char*, int);
+
+void add_operator_plus(void*, char*, int);
+
+void add_operator_minus(void*, char*, int);
+
+void add_operator_not(void*, char*, int);
+
+void add_operator_multiply(void*, char*, int);
+
+void add_operator_divide(void*, char*, int);
+
+void add_comma(void*, char*, int);
 
 void add_string(void*, char*, int);
 
@@ -34,10 +48,6 @@ void add_right_brace(void*, char*, int);
 void add_left_paren(void*, char*, int);
 
 void add_right_paren(void*, char*, int);
-
-void add_integer_literal(void*, char*, int);
-
-void add_string_literal(void*, char*, int);
 
 void add_identifier(void*, char*, int);
 
@@ -67,11 +77,25 @@ break { LexerFunctions::add_keyword_break(p, yytext, yylineno); }
 
 for { LexerFunctions::add_keywork_for(p, yytext, yylineno); }
 
-{DIGIT}+.{DIGIT}+ { LexerFunctions::add_floating_point_literal(p, yytext, yylineno); }
+true|false { LexerFunctions::add_boolean(p, yytext, yylineno); }
+
+{DIGIT}+.{DIGIT}+ { LexerFunctions::add_floating_point(p, yytext, yylineno); }
 
 {DIGIT}+ { LexerFunctions::add_integer(p, yytext, yylineno); }
 
-"+"|"-"|"/"|"*"|"=" { LexerFunctions::add_operator(p, yytext, yylineno); }
+= { LexerFunctions::add_operator_equals(p, yytext, yylineno); }
+
+\+ { LexerFunctions::add_operator_plus(p, yytext, yylineno); }
+
+- { LexerFunctions::add_operator_minus(p, yytext, yylineno); }
+
+! { LexerFunctions::add_operator_not(p, yytext, yylineno); }
+
+\* { LexerFunctions::add_operator_multiply(p, yytext, yylineno); }
+
+\/ { LexerFunctions::add_operator_divide(p, yytext, yylineno); }
+
+, { LexerFunctions::add_comma(p, yytext, yylineno); }
 
 \"(\\.|[^"])*\" { LexerFunctions::add_string(p, yytext, yylineno); }
 
@@ -82,10 +106,6 @@ for { LexerFunctions::add_keywork_for(p, yytext, yylineno); }
 \( { LexerFunctions::add_left_paren(p, yytext, yylineno); }
 
 \) { LexerFunctions::add_right_paren(p, yytext, yylineno); }
-
-DIGIT+ { LexerFunctions::add_integer_literal(p, yytext, yylineno); }
-
-"TEXT+" { LexerFunctions::add_string_literal(p, yytext, yylineno); }
 
 {ALPHANUMERIC}+ { LexerFunctions::add_identifier(p, yytext, yylineno); }
 
@@ -99,6 +119,7 @@ namespace LexerFunctions {
 
 void input(char* source, void* userdata) {  
   FILE* f = fmemopen(source, strlen(source), "r");
+  printf("%s\n", source);
   yyin = f;
   p = userdata;
   yylex();  
