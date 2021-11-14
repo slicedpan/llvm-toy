@@ -1,1 +1,13 @@
-a = b + 2
+var a = 1.4 + 2.5
+
+function foo(b, c) {
+  if (b) {
+    return c
+  } else {
+    return
+    a = 69
+  }
+  a = 99
+}
+
+d = foo(true, 1.0)

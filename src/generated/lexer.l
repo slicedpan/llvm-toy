@@ -11,19 +11,27 @@ namespace LexerFunctions {
 
 void add_keyword_var(void*, char*, int);
 
+void add_keyword_return_empty(void*, char*, int);
+
 void add_keyword_return(void*, char*, int);
 
 void add_keyword_function(void*, char*, int);
 
 void add_keyword_break(void*, char*, int);
 
-void add_keywork_for(void*, char*, int);
+void add_keyword_for(void*, char*, int);
+
+void add_keyword_if(void*, char*, int);
+
+void add_keyword_else(void*, char*, int);
 
 void add_boolean(void*, char*, int);
 
 void add_floating_point(void*, char*, int);
 
 void add_integer(void*, char*, int);
+
+void add_operator_double_equals(void*, char*, int);
 
 void add_operator_equals(void*, char*, int);
 
@@ -69,19 +77,27 @@ ALPHANUMERIC [a-zA-Z0-9]
 
 var { LexerFunctions::add_keyword_var(p, yytext, yylineno); }
 
+"return"[ \t]*\n { LexerFunctions::add_keyword_return_empty(p, yytext, yylineno); }
+
 return { LexerFunctions::add_keyword_return(p, yytext, yylineno); }
 
 function { LexerFunctions::add_keyword_function(p, yytext, yylineno); }
 
 break { LexerFunctions::add_keyword_break(p, yytext, yylineno); }
 
-for { LexerFunctions::add_keywork_for(p, yytext, yylineno); }
+for { LexerFunctions::add_keyword_for(p, yytext, yylineno); }
+
+if { LexerFunctions::add_keyword_if(p, yytext, yylineno); }
+
+else { LexerFunctions::add_keyword_else(p, yytext, yylineno); }
 
 true|false { LexerFunctions::add_boolean(p, yytext, yylineno); }
 
 {DIGIT}+.{DIGIT}+ { LexerFunctions::add_floating_point(p, yytext, yylineno); }
 
 {DIGIT}+ { LexerFunctions::add_integer(p, yytext, yylineno); }
+
+== { LexerFunctions::add_operator_double_equals(p, yytext, yylineno); }
 
 = { LexerFunctions::add_operator_equals(p, yytext, yylineno); }
 
@@ -119,7 +135,6 @@ namespace LexerFunctions {
 
 void input(char* source, void* userdata) {  
   FILE* f = fmemopen(source, strlen(source), "r");
-  printf("%s\n", source);
   yyin = f;
   p = userdata;
   yylex();  

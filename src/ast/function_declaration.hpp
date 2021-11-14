@@ -20,7 +20,9 @@ namespace LLVMToy {
           delete *iter;
         }
       }
-    private:      
+      
+      void accept(ASTVisitor& v);
+    
       Token name;
       std::vector<Token> arguments;
       std::vector<Statement*> body;

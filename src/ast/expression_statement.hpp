@@ -14,14 +14,8 @@ namespace LLVMToy {
       ~ExpressionStatement() {
         delete this->expression;
       }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("EXPR_STMT\n");
-        tab(indent);
-        printf("expression:\n");
-        expression->debug_print(indent + 1);
-      }
-    private:      
+      void accept(ASTVisitor& v);
+ 
       Expression* expression;
   };
 }

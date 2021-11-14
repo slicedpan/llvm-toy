@@ -39,7 +39,7 @@ namespace LLVMToy {
     LexerFunctions::input(buffer, &(this->tokens));
     Token last_token;
     last_token.line_number = -1;
-    last_token.type = TokenType::EndOfFile;
+    last_token.type = Types::Token::EndOfFile;
     last_token.content = "";
     tokens.push_back(last_token);
     delete[] buffer;

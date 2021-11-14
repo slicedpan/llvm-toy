@@ -17,18 +17,8 @@ namespace LLVMToy {
       ~VariableDeclaration() {
         delete initializer;
       }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("VAR\n");
-        tab(indent);
-        printf("name: %s\n", this->name.content.c_str());
-        if (this->initializer) {
-          tab(indent);
-          printf("initializer:\n");
-          initializer->debug_print(indent + 1);
-        }
-      }      
-    private:      
+      void accept(ASTVisitor& v);
+      
       Token name;      
       Expression* initializer;      
   };

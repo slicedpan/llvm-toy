@@ -12,6 +12,7 @@
 #include "ast/unary_operator.hpp"
 #include "ast/assignment.hpp"
 #include "ast/variable_reference.hpp"
+#include "ast/function_call.hpp"
 #include "ast/if_statement.hpp"
 #include "ast/return_statement.hpp"
 #include "parser_error.hpp"
@@ -24,7 +25,7 @@ namespace LLVMToy {
   vector<Statement*> Parser::parse_block() {
     vector<Statement*> ret;
     for (;;) {
-      if (peek().type == TokenType::RightBrace || peek().type == TokenType::EndOfFile) {
+      if (peek().type == Types::Token::RightBrace || peek().type == Types::Token::EndOfFile) {
         break;
       }
       ret.push_back(parse_variable_declaration());
@@ -33,20 +34,55 @@ namespace LLVMToy {
   }
 
   Statement* Parser::parse_variable_declaration() {
-    if (peek().type != TokenType::KeywordVar) {
-      return parse_function_declaration();
+    if (peek().type != Types::Token::KeywordVar) {
+      return parse_if_statement();
     }
     consume();
-    const Token& id_token = consume_type(TokenType::Identifier, "Expected valid identifier");
+    const Token& id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
     Expression* expression = nullptr;
-    if (peek().type == TokenType::OperatorEquals) {
+    if (peek().type == Types::Token::OperatorEquals) {
       consume();
       expression = parse_expression(ParserPrecedence::Parentheses);
     }
     return new VariableDeclaration(id_token, expression);
   }
 
-  const Token& Parser::consume_type(TokenType type, string error_message) {
+  Statement* Parser::parse_if_statement() {
+    if (peek().type != Types::Token::KeywordIf) {
+      return parse_function_declaration();
+    }
+    consume();
+    consume_type(Types::Token::LeftParen, "Expected '(' after if keyword");
+    Expression* condition = parse_expression();
+    consume_type(Types::Token::RightParen, "Expected ')' after condition in if statement");
+    vector<Statement*> body;
+    vector<Statement*> else_branch;
+    if (peek().type == Types::Token::LeftBrace) {
+      consume();
+      body = parse_block();
+      consume_type(Types::Token::RightBrace, "Expected '}' at end of block");
+    } else {
+      body.push_back(parse_variable_declaration());
+    }
+    if (peek().type == Types::Token::KeywordElse) {
+      consume();
+      switch(peek().type) {
+        case(Types::Token::LeftBrace):
+          consume();
+          else_branch = parse_block();
+          consume_type(Types::Token::RightBrace, "Expected '}' at end of block");
+          break;
+        case(Types::Token::KeywordIf):
+          else_branch.push_back(parse_if_statement());
+          break;
+        default:
+          else_branch.push_back(parse_variable_declaration());
+      }
+    }
+    return new IfStatement(condition, body, else_branch);
+  }
+
+  const Token& Parser::consume_type(Types::Token type, string error_message) {
     if (peek().type == type) {
       return consume();
     } else {
@@ -61,80 +97,116 @@ namespace LLVMToy {
   }
 
   Statement* Parser::parse_function_declaration() {
-    if (peek().type != TokenType::KeywordFunction) {
-      return parse_expression_statement();      
+    if (peek().type != Types::Token::KeywordFunction) {
+      return parse_return_statement();      
     }
     consume();
-    const Token& id_token = consume_type(TokenType::Identifier, "Expected valid identifier");
-    consume_type(TokenType::LeftParen, "Expected '('");
+    const Token& id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
+    consume_type(Types::Token::LeftParen, "Expected '('");
     std::vector<Token> arguments;
-    if (peek().type != TokenType::RightParen) {
+    if (peek().type != Types::Token::RightParen) {
       for(;;) {
-        arguments.emplace_back(consume_type(TokenType::Identifier, "Expected identifier for function argument"));
-        if (peek().type == TokenType::Comma) {
+        arguments.emplace_back(consume_type(Types::Token::Identifier, "Expected identifier for function argument"));
+        if (peek().type == Types::Token::Comma) {
           consume();
         } else {
           break;
         }
       }
-      consume_type(TokenType::RightParen, "Expected ')' at end of argument list");
+      consume_type(Types::Token::RightParen, "Expected ')' at end of argument list");
     } else {
       consume();
     }
-    consume_type(TokenType::LeftBrace, "Expected function block (missing '{')");
+    consume_type(Types::Token::LeftBrace, "Expected function block (missing '{')");
     Statement* ret = new FunctionDeclaration(id_token, arguments, parse_block());
-    consume_type(TokenType::RightBrace, "Expected '}' at end of function body");
+    consume_type(Types::Token::RightBrace, "Expected '}' at end of function body");
     return ret;
   }
 
   Statement* Parser::parse_expression_statement() {
-    Expression* expression = parse_expression(ParserPrecedence::Parentheses);
+    Expression* expression = parse_expression();
     return new ExpressionStatement(expression);
+  }
+
+  Statement* Parser::parse_return_statement() {
+    if (peek().type != Types::Token::KeywordReturn && peek().type != Types::Token::KeywordReturnEmpty) {
+      return parse_expression_statement();
+    }
+    Token return_token = consume();
+    return new ReturnStatement(
+      return_token.type == Types::Token::KeywordReturnEmpty ? nullptr : parse_expression()
+    );
   }
 
   Expression* Parser::parse_expression(int max_precedence) {
     Expression* expr = parse_parenthesised_expression(max_precedence);
-    const Token& next = peek();
-    switch(next.type) {
-      case TokenType::OperatorDivide:
-      case TokenType::OperatorMultiply:
-        if (max_precedence >= ParserPrecedence::Multiplication) {
-          consume();
-          return new BinaryOperator(next, expr, parse_expression(ParserPrecedence::Multiplication));
-        }
-        break;
-      case TokenType::OperatorMinus:
-      case TokenType::OperatorPlus:
-        if (max_precedence >= ParserPrecedence::Addition) {
-          consume();
-          return new BinaryOperator(next, expr, parse_expression(ParserPrecedence::Addition));
-        }
-        break;
-      case TokenType::OperatorEquals:
-        if (max_precedence >= ParserPrecedence::Assign) {
-          if (!expr->assignable()) {
-            throw ParserError("Can't assign to this expression");
+    Expression* next_expr = nullptr;
+    for (;;) {
+      const Token& next = peek();
+      next_expr = nullptr;
+      switch(next.type) {
+        case Types::Token::OperatorDivide:
+        case Types::Token::OperatorMultiply:
+          if (max_precedence > ParserPrecedence::Multiplication) {
+            consume();
+            next_expr = new BinaryOperator(next, expr, parse_expression(ParserPrecedence::Multiplication));
           }
+          break;
+        case Types::Token::OperatorMinus:
+        case Types::Token::OperatorPlus:
+          if (max_precedence > ParserPrecedence::Addition) {
+            consume();
+            next_expr = new BinaryOperator(next, expr, parse_expression(ParserPrecedence::Addition));
+          }
+          break;
+        case Types::Token::OperatorEquals:
+          if (max_precedence >= ParserPrecedence::Assign) {
+            if (!expr->assignable()) {
+              throw ParserError("Can't assign to this expression");
+            }
+            consume();
+            next_expr = new Assignment(expr, parse_expression(ParserPrecedence::Assign));
+          }
+          break;
+        case Types::Token::LeftParen:
           consume();
-          return new Assignment(expr, parse_expression(ParserPrecedence::Assign));
-        }
+          next_expr = new FunctionCall(expr, parse_argument_expressions());
+          consume_type(Types::Token::RightParen, "Expected ')'");
+          break;
+      }
+      if (next_expr == nullptr) {
         break;
+      } else {
+        expr = next_expr;
+      }
     }
     return expr;
   }
 
+  std::vector<Expression*> Parser::parse_argument_expressions() {
+    std::vector<Expression*> expressions;
+    for (;;) {
+      if (peek().type == Types::Token::RightParen || peek().type == Types::Token::EndOfFile) {
+        break;
+      }
+      if (!expressions.empty()) consume_type(Types::Token::Comma, "Expected ',' between arguments");
+      expressions.push_back(parse_expression(ParserPrecedence::Parentheses));      
+    }
+    return expressions;
+  }
+
   Expression* Parser::parse_parenthesised_expression(int max_precedence) {
-    if (peek().type != TokenType::LeftParen) {
+    if (peek().type != Types::Token::LeftParen) {
       return parse_unary_expression(max_precedence);
     }
     consume();
     Expression* ret = parse_expression(max_precedence);
-    consume_type(TokenType::RightParen, "Expected ')'");
+    consume_type(Types::Token::RightParen, "Expected ')'");
     return ret;
   }
 
   Expression* Parser::parse_identifier(int max_precedence) {
-    const Token& tok = consume_type(TokenType::Identifier, "Expected identifier");
+    const Token& tok = consume_type(Types::Token::Identifier, "Expected identifier");
     return new VariableReference(tok);
   }
 
@@ -142,16 +214,16 @@ namespace LLVMToy {
     Expression* ret;
     const Token& tok = peek();
     switch (tok.type) {
-      case TokenType::String:
+      case Types::Token::String:
         ret = new StringLiteral(tok);
         break;
-      case TokenType::FloatingPoint:
+      case Types::Token::FloatingPoint:
         ret = new FloatingPointLiteral(tok);
         break;
-      case TokenType::Integer:
+      case Types::Token::Integer:
         ret = new IntegerLiteral(tok);
         break;
-      case TokenType::Boolean:
+      case Types::Token::Boolean:
         ret = new BooleanLiteral(tok);
         break;
       default:
@@ -162,13 +234,13 @@ namespace LLVMToy {
   }
 
   Expression* Parser::parse_unary_expression(int max_precedence) {
-    if (peek().type != TokenType::OperatorNot && peek().type != TokenType::OperatorMinus) {
+    if (peek().type != Types::Token::OperatorNot && peek().type != Types::Token::OperatorMinus) {
       return parse_literal(max_precedence);
     }
     return new UnaryOperator(consume(), parse_expression(ParserPrecedence::Unary));
   }
 
-  bool Parser::match(TokenType token_type) {
+  bool Parser::match(Types::Token token_type) {
     return false;
   }
 
@@ -176,7 +248,7 @@ namespace LLVMToy {
     return tokens[token_index];
   }
 
-  const vector<Statement*> Parser::get_statements() {
+  const vector<Statement*>& Parser::get_statements() {
     return statements;
   }
 

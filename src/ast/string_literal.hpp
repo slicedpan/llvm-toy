@@ -10,11 +10,8 @@ namespace LLVMToy {
       StringLiteral(const Token& value) {
         this->value = value;
       }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("%s\n", value.content.c_str());
-      }
-    private:      
+      void accept(ASTVisitor& v);
+    
       Token value;
   };
 }

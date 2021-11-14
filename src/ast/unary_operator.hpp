@@ -8,18 +8,12 @@ namespace LLVMToy {
   class UnaryOperator : public Expression {
     public:
       UnaryOperator(const Token& op, Expression* expression) {
-        this->op = op;
+        this->op = Types::TokenToOperator.at(op.type);
         this->expression = expression;
       }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("UNARY_OP(%s)\n", op.content.c_str());
-        tab(indent);
-        printf("expression:\n");
-        expression->debug_print(indent + 1);
-      }
-    private:
-      Token op;
+      void accept(ASTVisitor& v);
+
+      Types::Operator op;
       Expression* expression;
   };
 }

@@ -10,15 +10,16 @@
 namespace LLVMToy {
   class IfStatement : public Statement {
     public:
-      IfStatement(Expression condition, std::vector<Statement> body, std::vector<Statement> else_branch) {        
+      IfStatement(Expression* condition, std::vector<Statement*> body, std::vector<Statement*> else_branch) {        
         this->condition = condition;        
         this->body = body;        
         this->else_branch = else_branch;        
       }
-    private:      
-      Expression condition;      
-      std::vector<Statement> body;      
-      std::vector<Statement> else_branch;      
+      void accept(ASTVisitor& v);
+         
+      Expression* condition;      
+      std::vector<Statement*> body;      
+      std::vector<Statement*> else_branch;      
   };
 }
 

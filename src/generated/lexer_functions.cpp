@@ -17,7 +17,16 @@ namespace LexerFunctions {
   void add_keyword_var(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::KeywordVar;
+    tok.type = LLVMToy::Types::Token::KeywordVar;
+    tok.line_number = line_number;
+    tok.content.assign(content);
+    tokens->push_back(tok);
+  }
+  
+  void add_keyword_return_empty(void* userdata, char* content, int line_number) {
+    auto tokens = (tokens_ptr)userdata;
+    LLVMToy::Token tok;
+    tok.type = LLVMToy::Types::Token::KeywordReturnEmpty;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -26,7 +35,7 @@ namespace LexerFunctions {
   void add_keyword_return(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::KeywordReturn;
+    tok.type = LLVMToy::Types::Token::KeywordReturn;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -35,7 +44,7 @@ namespace LexerFunctions {
   void add_keyword_function(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::KeywordFunction;
+    tok.type = LLVMToy::Types::Token::KeywordFunction;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -44,16 +53,34 @@ namespace LexerFunctions {
   void add_keyword_break(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::KeywordBreak;
+    tok.type = LLVMToy::Types::Token::KeywordBreak;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
   }
   
-  void add_keywork_for(void* userdata, char* content, int line_number) {
+  void add_keyword_for(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::KeyworkFor;
+    tok.type = LLVMToy::Types::Token::KeywordFor;
+    tok.line_number = line_number;
+    tok.content.assign(content);
+    tokens->push_back(tok);
+  }
+  
+  void add_keyword_if(void* userdata, char* content, int line_number) {
+    auto tokens = (tokens_ptr)userdata;
+    LLVMToy::Token tok;
+    tok.type = LLVMToy::Types::Token::KeywordIf;
+    tok.line_number = line_number;
+    tok.content.assign(content);
+    tokens->push_back(tok);
+  }
+  
+  void add_keyword_else(void* userdata, char* content, int line_number) {
+    auto tokens = (tokens_ptr)userdata;
+    LLVMToy::Token tok;
+    tok.type = LLVMToy::Types::Token::KeywordElse;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -62,7 +89,7 @@ namespace LexerFunctions {
   void add_boolean(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::Boolean;
+    tok.type = LLVMToy::Types::Token::Boolean;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -71,7 +98,7 @@ namespace LexerFunctions {
   void add_floating_point(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::FloatingPoint;
+    tok.type = LLVMToy::Types::Token::FloatingPoint;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -80,7 +107,16 @@ namespace LexerFunctions {
   void add_integer(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::Integer;
+    tok.type = LLVMToy::Types::Token::Integer;
+    tok.line_number = line_number;
+    tok.content.assign(content);
+    tokens->push_back(tok);
+  }
+  
+  void add_operator_double_equals(void* userdata, char* content, int line_number) {
+    auto tokens = (tokens_ptr)userdata;
+    LLVMToy::Token tok;
+    tok.type = LLVMToy::Types::Token::OperatorDoubleEquals;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -89,7 +125,7 @@ namespace LexerFunctions {
   void add_operator_equals(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorEquals;
+    tok.type = LLVMToy::Types::Token::OperatorEquals;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -98,7 +134,7 @@ namespace LexerFunctions {
   void add_operator_plus(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorPlus;
+    tok.type = LLVMToy::Types::Token::OperatorPlus;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -107,7 +143,7 @@ namespace LexerFunctions {
   void add_operator_minus(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorMinus;
+    tok.type = LLVMToy::Types::Token::OperatorMinus;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -116,7 +152,7 @@ namespace LexerFunctions {
   void add_operator_not(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorNot;
+    tok.type = LLVMToy::Types::Token::OperatorNot;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -125,7 +161,7 @@ namespace LexerFunctions {
   void add_operator_multiply(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorMultiply;
+    tok.type = LLVMToy::Types::Token::OperatorMultiply;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -134,7 +170,7 @@ namespace LexerFunctions {
   void add_operator_divide(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::OperatorDivide;
+    tok.type = LLVMToy::Types::Token::OperatorDivide;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -143,7 +179,7 @@ namespace LexerFunctions {
   void add_comma(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::Comma;
+    tok.type = LLVMToy::Types::Token::Comma;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -152,7 +188,7 @@ namespace LexerFunctions {
   void add_string(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::String;
+    tok.type = LLVMToy::Types::Token::String;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -161,7 +197,7 @@ namespace LexerFunctions {
   void add_left_brace(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::LeftBrace;
+    tok.type = LLVMToy::Types::Token::LeftBrace;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -170,7 +206,7 @@ namespace LexerFunctions {
   void add_right_brace(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::RightBrace;
+    tok.type = LLVMToy::Types::Token::RightBrace;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -179,7 +215,7 @@ namespace LexerFunctions {
   void add_left_paren(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::LeftParen;
+    tok.type = LLVMToy::Types::Token::LeftParen;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -188,7 +224,7 @@ namespace LexerFunctions {
   void add_right_paren(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::RightParen;
+    tok.type = LLVMToy::Types::Token::RightParen;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);
@@ -197,7 +233,7 @@ namespace LexerFunctions {
   void add_identifier(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::Identifier;
+    tok.type = LLVMToy::Types::Token::Identifier;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);

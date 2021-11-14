@@ -10,7 +10,7 @@
 namespace LLVMToy {  
 
   struct Token {
-    TokenType type;
+    Types::Token type;
     int line_number;    
     string content;
   };

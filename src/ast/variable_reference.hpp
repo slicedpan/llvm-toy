@@ -12,11 +12,8 @@ namespace LLVMToy {
         this->name = name;
       }
       bool assignable() { return true; }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("VAR_REF(%s)\n", name.content.c_str());
-      }
-    private:      
+      void accept(ASTVisitor& v);
+    
       Token name;
   };
 }

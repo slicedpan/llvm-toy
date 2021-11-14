@@ -7,13 +7,12 @@
 #include <map>
 
 namespace LLVMToy {
-
-  enum TokenType { KeywordVar,KeywordReturn,KeywordFunction,KeywordBreak,KeyworkFor,Boolean,FloatingPoint,Integer,OperatorEquals,OperatorPlus,OperatorMinus,OperatorNot,OperatorMultiply,OperatorDivide,Comma,String,LeftBrace,RightBrace,LeftParen,RightParen,Identifier,EndOfFile };
-
-  const auto TokenTypeNames = std::map<TokenType, string>{
-    {KeywordVar, "KeywordVar"},{KeywordReturn, "KeywordReturn"},{KeywordFunction, "KeywordFunction"},{KeywordBreak, "KeywordBreak"},{KeyworkFor, "KeyworkFor"},{Boolean, "Boolean"},{FloatingPoint, "FloatingPoint"},{Integer, "Integer"},{OperatorEquals, "OperatorEquals"},{OperatorPlus, "OperatorPlus"},{OperatorMinus, "OperatorMinus"},{OperatorNot, "OperatorNot"},{OperatorMultiply, "OperatorMultiply"},{OperatorDivide, "OperatorDivide"},{Comma, "Comma"},{String, "String"},{LeftBrace, "LeftBrace"},{RightBrace, "RightBrace"},{LeftParen, "LeftParen"},{RightParen, "RightParen"},{Identifier, "Identifier"},{EndOfFile, "EndOfFile"}
-  };
-
-} //namespace
+  namespace Types {
+    enum Token { KeywordVar,KeywordReturnEmpty,KeywordReturn,KeywordFunction,KeywordBreak,KeywordFor,KeywordIf,KeywordElse,Boolean,FloatingPoint,Integer,OperatorDoubleEquals,OperatorEquals,OperatorPlus,OperatorMinus,OperatorNot,OperatorMultiply,OperatorDivide,Comma,String,LeftBrace,RightBrace,LeftParen,RightParen,Identifier,EndOfFile };
+    const auto TokenNames = std::map<Token, string>{
+      {KeywordVar, "KeywordVar"},{KeywordReturnEmpty, "KeywordReturnEmpty"},{KeywordReturn, "KeywordReturn"},{KeywordFunction, "KeywordFunction"},{KeywordBreak, "KeywordBreak"},{KeywordFor, "KeywordFor"},{KeywordIf, "KeywordIf"},{KeywordElse, "KeywordElse"},{Boolean, "Boolean"},{FloatingPoint, "FloatingPoint"},{Integer, "Integer"},{OperatorDoubleEquals, "OperatorDoubleEquals"},{OperatorEquals, "OperatorEquals"},{OperatorPlus, "OperatorPlus"},{OperatorMinus, "OperatorMinus"},{OperatorNot, "OperatorNot"},{OperatorMultiply, "OperatorMultiply"},{OperatorDivide, "OperatorDivide"},{Comma, "Comma"},{String, "String"},{LeftBrace, "LeftBrace"},{RightBrace, "RightBrace"},{LeftParen, "LeftParen"},{RightParen, "RightParen"},{Identifier, "Identifier"},{EndOfFile, "EndOfFile"}
+    };
+  }
+}
 
 #endif

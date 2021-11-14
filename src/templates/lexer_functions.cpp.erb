@@ -17,7 +17,7 @@ namespace LexerFunctions {
   void add_<%= token_type %>(void* userdata, char* content, int line_number) {
     auto tokens = (tokens_ptr)userdata;
     LLVMToy::Token tok;
-    tok.type = LLVMToy::TokenType::<%= pascal_case(token_type) %>;
+    tok.type = LLVMToy::Types::Token::<%= pascal_case(token_type) %>;
     tok.line_number = line_number;
     tok.content.assign(content);
     tokens->push_back(tok);

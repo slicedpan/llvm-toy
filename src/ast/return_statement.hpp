@@ -9,7 +9,16 @@
 
 namespace LLVMToy {
   class ReturnStatement : public Statement {
-    
+    public:
+      ReturnStatement(Expression* expression) {
+        this->expression = expression;
+      }
+      ~ReturnStatement() {
+        delete this->expression;
+      }
+      void accept(ASTVisitor &v);
+
+      Expression* expression;
   };
 }
 

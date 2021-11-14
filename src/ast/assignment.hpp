@@ -11,17 +11,8 @@ namespace LLVMToy {
         this->left = left;
         this->right = right;
       }
-      void debug_print(int indent) {
-        tab(indent);
-        printf("ASSIGNMENT\n");
-        tab(indent);
-        printf("left:\n");
-        left->debug_print(indent + 1);
-        tab(indent);
-        printf("right:\n");
-        right->debug_print(indent + 1);
-      }
-    private:
+      void accept(ASTVisitor& v);
+
       Expression* left;
       Expression* right;
   };

@@ -39,7 +39,6 @@ namespace LexerFunctions {
 
 void input(char* source, void* userdata) {  
   FILE* f = fmemopen(source, strlen(source), "r");
-  printf("%s\n", source);
   yyin = f;
   p = userdata;
   yylex();  
