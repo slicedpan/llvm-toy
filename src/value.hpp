@@ -14,6 +14,7 @@ enum ValueType {
   Nil,
   NativeFunction
 };
+
 namespace LLVMToy {
 
   struct Value {

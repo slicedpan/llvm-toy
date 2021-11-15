@@ -1,6 +1,15 @@
 cmake_minimum_required (VERSION 2.6)
 project(LLVM-Test)
 
+find_package(LLVM REQUIRED CONFIG)
+
+message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
+
+include_directories(${LLVM_INCLUDE_DIRS})
+separate_arguments(LLVM_DEFINITIONS_LIST NATIVE_COMMAND ${LLVM_DEFINITIONS})
+add_definitions(${LLVM_DEFINITIONS_LIST})
+
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++17")
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/build)
 set(CMAKE_BUILD_TYPE Debug)
@@ -34,3 +43,6 @@ src/interpreter/operator_action.cpp
 src/memory_allocation.cpp
 src/llvm_ir_generator/llvm_ir_generator.cpp
 ${FLEX_Lexer_OUTPUTS})
+
+llvm_map_components_to_libnames(llvm_libs support core irreader)
+target_link_libraries(bin/llvm-test ${llvm_libs})

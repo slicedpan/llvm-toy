@@ -17,6 +17,7 @@
 namespace LLVMToy {
   class LLVMIRGenerator : public ASTVisitor {
     public:
+      LLVMIRGenerator();
       void visitAssignment(Assignment*);
       void visitBinaryOperator(BinaryOperator*);
       void visitBooleanLiteral(BooleanLiteral*);
@@ -31,7 +32,16 @@ namespace LLVMToy {
       void visitUnaryOperator(UnaryOperator*);
       void visitVariableDeclaration(VariableDeclaration*);
       void visitVariableReference(VariableReference*);
-      void visitStatements(const std::vector<Statement*>&);
+      void print();
+    private:
+      llvm::StructType* toy_value_type;
+      llvm::Value* gather_value(ASTNode*);
+      llvm::Value* pop_value();
+      void push_value(llvm::Value*);
+      vector<llvm::Value*> value_stack;
+      llvm::LLVMContext* llvm_context;
+      llvm::Module* llvm_module;
+      llvm::IRBuilder<>* ir_builder;
   };
 }
 #endif
