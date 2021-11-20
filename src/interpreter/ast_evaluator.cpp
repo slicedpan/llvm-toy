@@ -1,6 +1,7 @@
 #include "ast_evaluator.hpp"
 #include "operator_action.hpp"
 #include "../memory_allocation.hpp"
+#include "../function.hpp"
 
 namespace LLVMToy {
   Value ASTEvaluator::pop_value() {

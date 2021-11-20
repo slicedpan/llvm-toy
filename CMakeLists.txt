@@ -41,8 +41,11 @@ src/interpreter/ast_evaluator.cpp
 src/interpreter/scope.cpp
 src/interpreter/operator_action.cpp
 src/memory_allocation.cpp
-src/llvm_ir_generator/llvm_ir_generator.cpp
+src/llvm_interpreter/llvm_ir_generator.cpp
+src/llvm_interpreter/llvm_interpreter.cpp
+src/llvm_interpreter/llvm_jit_compiler.cpp
+src/llvm_interpreter/llvm_builtins.cpp
 ${FLEX_Lexer_OUTPUTS})
 
-llvm_map_components_to_libnames(llvm_libs support core irreader)
+llvm_map_components_to_libnames(llvm_libs support core irreader x86asmparser target x86codegen orcjit)
 target_link_libraries(bin/llvm-test ${llvm_libs})

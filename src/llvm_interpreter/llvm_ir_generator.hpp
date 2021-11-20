@@ -2,17 +2,15 @@
 #define LLVM_IR_GENERATOR_HPP
 
 #include "../ast_visitor.hpp"
-#include "llvm/ADT/APFloat.h"
-#include "llvm/ADT/STLExtras.h"
-#include "llvm/IR/BasicBlock.h"
-#include "llvm/IR/Constants.h"
-#include "llvm/IR/DerivedTypes.h"
-#include "llvm/IR/Function.h"
 #include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LLVMContext.h"
-#include "llvm/IR/Module.h"
-#include "llvm/IR/Type.h"
-#include "llvm/IR/Verifier.h"
+
+namespace llvm {
+  class LLVMContext;
+  class StructType;
+  class Module;
+  class Value;
+  template<typename> class ArrayRef;
+}
 
 namespace LLVMToy {
   class LLVMIRGenerator : public ASTVisitor {
@@ -33,6 +31,8 @@ namespace LLVMToy {
       void visitVariableDeclaration(VariableDeclaration*);
       void visitVariableReference(VariableReference*);
       void print();
+      llvm::Module* get_module();
+      void reset_module();
     private:
       llvm::StructType* toy_value_type;
       llvm::Value* gather_value(ASTNode*);
@@ -42,6 +42,10 @@ namespace LLVMToy {
       llvm::LLVMContext* llvm_context;
       llvm::Module* llvm_module;
       llvm::IRBuilder<>* ir_builder;
+      unsigned int type_index[1] = {0};
+      unsigned int value_index[1] = {1};
+      llvm::ArrayRef<unsigned int> type_ref;
+      llvm::ArrayRef<unsigned int> value_ref;
   };
 }
 #endif

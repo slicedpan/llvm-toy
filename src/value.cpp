@@ -91,4 +91,10 @@ namespace LLVMToy {
     val.bool_value = src;
     return val;
   }
+
+  Value Value::make_nil() {
+    Value val;
+    val.type = ValueType::Nil;
+    return val;
+  }
 }

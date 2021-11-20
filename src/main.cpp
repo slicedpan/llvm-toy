@@ -8,7 +8,8 @@
 #include "ast_printer.hpp"
 #include "interpreter/ast_evaluator.hpp"
 #include "interpreter/scope.hpp"
-#include "llvm_ir_generator/llvm_ir_generator.hpp"
+#include "llvm_interpreter/llvm_ir_generator.hpp"
+#include "llvm_interpreter/llvm_interpreter.hpp"
 
 int main(int argc, char** argv) {
   LLVMToy::Lexer lexer;
@@ -25,9 +26,14 @@ int main(int argc, char** argv) {
   // LLVMToy::ASTPrinter debug_printer;
   // debug_printer.print(parser.get_statements());
 
-  LLVMToy::LLVMIRGenerator ir_generator;
-  ir_generator.visitStatements(parser.get_statements());
-  ir_generator.print();
+  // LLVMToy::LLVMIRGenerator ir_generator;
+  // ir_generator.visitStatements(parser.get_statements());
+  // ir_generator.print();
+
+  LLVMToy::LLVMInterpreter interpreter;
+  interpreter.initialize();
+  interpreter.interpret_statements(parser.get_statements());
+  //interpreter.run();
 
   // LLVMToy::ASTEvaluator evaluator;
   // LLVMToy::Scope base_scope;

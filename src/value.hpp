@@ -1,7 +1,6 @@
 #ifndef VALUE_HPP
 #define VALUE_HPP
 
-#include "function.hpp"
 #include "namespace.hpp"
 
 enum ValueType {
@@ -16,6 +15,7 @@ enum ValueType {
 };
 
 namespace LLVMToy {
+  class Function;
 
   struct Value {
     ValueType type;
@@ -34,6 +34,7 @@ namespace LLVMToy {
     static Value make_int(int src);
     static Value make_float(double src);
     static Value make_bool(bool src);
+    static Value make_nil();
     
     void free_self();
   };
