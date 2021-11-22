@@ -99,7 +99,9 @@ namespace LLVMToy {
   }
 
   void ASTPrinter::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
-    push_string(floating_point_literal->value.content);
+    std::stringstream ss;
+    ss << floating_point_literal->value.content << " (fp)";
+    push_string(ss.str());
   }
 
   void ASTPrinter::visitFunctionCall(FunctionCall* function_call) {
@@ -127,7 +129,9 @@ namespace LLVMToy {
   }
 
   void ASTPrinter::visitIntegerLiteral(IntegerLiteral* integer_literal) {
-    push_string(integer_literal->value.content);
+    std::stringstream ss;
+    ss << integer_literal->value.content << " (int)";
+    push_string(ss.str());
   }
 
   void ASTPrinter::visitReturnStatement(ReturnStatement* return_statement) {

@@ -8,6 +8,7 @@
 #include "ast_printer.hpp"
 #include "interpreter/ast_evaluator.hpp"
 #include "interpreter/scope.hpp"
+#include <cassert>
 #include "llvm_interpreter/llvm_ir_generator.hpp"
 #include "llvm_interpreter/llvm_interpreter.hpp"
 
@@ -23,8 +24,8 @@ int main(int argc, char** argv) {
     printf("Error: %s\n", e.what());
   }
 
-  // LLVMToy::ASTPrinter debug_printer;
-  // debug_printer.print(parser.get_statements());
+  LLVMToy::ASTPrinter debug_printer;
+  debug_printer.print(parser.get_statements());
 
   // LLVMToy::LLVMIRGenerator ir_generator;
   // ir_generator.visitStatements(parser.get_statements());
@@ -33,7 +34,7 @@ int main(int argc, char** argv) {
   LLVMToy::LLVMInterpreter interpreter;
   interpreter.initialize();
   interpreter.interpret_statements(parser.get_statements());
-  //interpreter.run();
+  interpreter.run();
 
   // LLVMToy::ASTEvaluator evaluator;
   // LLVMToy::Scope base_scope;

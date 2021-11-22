@@ -20,6 +20,7 @@
 #include "llvm/Transforms/Scalar/GVN.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/ADT/APFloat.h"
+#include "../namespace.hpp"
 
 namespace llvm {
   class EPCIndirectionUtils;

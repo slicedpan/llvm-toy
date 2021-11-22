@@ -2,13 +2,13 @@
 #define LLVM_IR_GENERATOR_HPP
 
 #include "../ast_visitor.hpp"
+#include "../value.hpp"
 #include "llvm/IR/IRBuilder.h"
 
 namespace llvm {
   class LLVMContext;
   class StructType;
   class Module;
-  class Value;
   template<typename> class ArrayRef;
 }
 
@@ -30,6 +30,8 @@ namespace LLVMToy {
       void visitUnaryOperator(UnaryOperator*);
       void visitVariableDeclaration(VariableDeclaration*);
       void visitVariableReference(VariableReference*);
+      void visitStatements(const vector<Statement*>&);
+      llvm::Value* create_lt_value(Value);
       void print();
       llvm::Module* get_module();
       void reset_module();

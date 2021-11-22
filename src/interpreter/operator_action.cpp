@@ -5,15 +5,7 @@ namespace LLVMToy {
     const Value undefined_value{ ValueType::Undefined };
 
     inline Value apply_not(Value value) {
-      switch(value.type) {
-        case ValueType::Integer:
-          return Value::make_bool(value.int_value != 0);
-          break;
-        case ValueType::Boolean:
-          return Value::make_bool(!value.bool_value);
-          break;
-      }
-      return undefined_value;
+      return Value::make_bool(!value.is_truthy());
     }
 
     inline Value apply_minus(Value value) {

@@ -28,7 +28,7 @@ namespace LLVMToy {
         ss << "undefined";
         break;
       case ValueType::Boolean:
-        ss << bool_value ? "true" : "false";
+        ss << (bool_value ? "true" : "false");
         break;
     }
     return ss.str();
@@ -93,8 +93,23 @@ namespace LLVMToy {
   }
 
   Value Value::make_nil() {
+    Value val{ValueType::Nil};
+    return val;
+  }
+
+  Value Value::make_undefined() {
+    Value val{ValueType::Undefined};
+    return val;
+  }
+
+  Value Value::make_builtin_fn(const char* name) {
     Value val;
-    val.type = ValueType::Nil;
+    if (strlen(name) > 7) {
+      return make_undefined();
+    } else {
+      val.type = ValueType::BuiltinFunction;
+      strcpy(val.short_str, name);
+    }
     return val;
   }
 }
