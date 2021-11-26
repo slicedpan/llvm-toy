@@ -31,7 +31,8 @@ namespace LLVMToy {
       {Token::OperatorDivide, Divide},
       {Token::OperatorMultiply, Multiply},
       {Token::OperatorPlus, Plus},
-      {Token::OperatorNot, Not}
+      {Token::OperatorNot, Not},
+      {Token::OperatorDoubleEquals, DoubleEquals}
     };
   }
 }

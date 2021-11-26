@@ -1,4 +1,5 @@
 #include "operator_action.hpp"
+#include <cstring>
 
 namespace LLVMToy {
   namespace OperatorAction {
@@ -90,6 +91,24 @@ namespace LLVMToy {
       return apply_addition(left, apply_minus(right));
     }
 
+    inline Value apply_equality(Value left, Value right) {
+      if (left.type != right.type)
+        return Value::make_bool(false);
+      switch (left.type) {
+        case ValueType::Integer:
+          return Value::make_bool(left.int_value == right.int_value);
+          break;
+        case ValueType::FloatingPoint:
+          return Value::make_bool(left.fp_value == right.fp_value);
+          break;
+        case ValueType::String:
+          return Value::make_bool(!strcmp(left.string_value, right.string_value));
+          break;
+        default:
+          return Value::make_bool(false);
+      }      
+    }
+
     Value apply_binary_operator(Types::Operator op, Value left, Value right) {
       switch (op) {
         case Types::Operator::Plus:
@@ -103,6 +122,9 @@ namespace LLVMToy {
           break;
         case Types::Operator::Divide:
           return apply_division(left, right);
+          break;
+        case Types::Operator::DoubleEquals:
+          return apply_equality(left, right);
           break;
       }
       return undefined_value;      

@@ -8,10 +8,9 @@
 #include <vector>
 
 namespace LLVMToy {
-  class FunctionDeclaration : public Statement {
+  class FunctionDeclaration : public Expression {
     public:
-      FunctionDeclaration(const Token& name, const std::vector<Token>& arguments, std::vector<Statement*> body) {        
-        this->name = name;
+      FunctionDeclaration(const std::vector<Token>& arguments, std::vector<Statement*> body) {        
         this->arguments = arguments;
         this->body = body;
       }
@@ -23,7 +22,6 @@ namespace LLVMToy {
       
       void accept(ASTVisitor& v);
     
-      Token name;
       std::vector<Token> arguments;
       std::vector<Statement*> body;
   };

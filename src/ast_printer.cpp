@@ -114,7 +114,7 @@ namespace LLVMToy {
 
   void ASTPrinter::visitFunctionDeclaration(FunctionDeclaration* function_declaration) {
     std::stringstream ss;
-    ss << "FUNCTION_DECL(" << function_declaration->name.content << ")\n" << "body:\n";
+    ss << "FUNCTION_DECL\n" << "body:\n";
     ss << gather_outputs(function_declaration->body);
     push_string(ss.str());
   }

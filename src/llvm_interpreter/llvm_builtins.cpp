@@ -9,10 +9,39 @@
 #include "../memory_allocation.hpp"
 #include "../operator_types.hpp"
 #include "../interpreter/operator_action.hpp"
+#include "../interpreter/scope.hpp"
+
+LLVMToy::Value lt_builtin_set_var(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
+  LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.int_value;
+  std::string name_as_string(name.string_value);
+  scope->set_variable(name_as_string, value);
+  return value;
+}
+
+LLVMToy::Value lt_builtin_get_var(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
+  LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.int_value;
+  std::string name_as_string(name.string_value);
+  return scope->lookup_variable(name_as_string);
+}
 
 LLVMToy::Value lt_builtin_puts(LLVMToy::Value arg) {
   std::cout << arg.to_string() << std::endl;
   return LLVMToy::Value::make_nil();
+}
+
+LLVMToy::Value lt_builtin_puts2(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
+  LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.native_ptr;
+  std::cout << "get_var scope_as_val: " << scope_as_val.bindump() << std::endl;
+  std::string name_as_string(name.string_value);
+  return scope->lookup_variable(name_as_string);
+}
+
+LLVMToy::Value lt_builtin_puts3(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
+  LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.native_ptr;
+  std::cout << "set_var scope_as_val: " << scope_as_val.bindump() << std::endl;
+  std::string name_as_string(name.string_value);
+  scope->set_variable(name_as_string, value);
+  return value;
 }
 
 LLVMToy::Value lt_builtin_binop(LLVMToy::Value op, LLVMToy::Value left, LLVMToy::Value right) {
@@ -30,8 +59,11 @@ LLVMToy::Value lt_builtin_truthy(LLVMToy::Value value) {
 }
 
 namespace LLVMToy {
+  void add_va_builtin(llvm::Module* module, llvm::Type* toy_struct_type, string name) {
+    
+  }
 
-  void add_builtin(llvm::Module* module, llvm::Type* toy_struct_type, string name, int arity) {
+  void LLVMBuiltins::add_builtin(llvm::Module* module, llvm::Type* toy_struct_type, string name, int arity) {
     llvm::Type* types[arity];
     for (int i = 0; i < arity; ++i) {
       types[i] = toy_struct_type;
@@ -45,50 +77,9 @@ namespace LLVMToy {
     add_builtin(module, toy_struct_type, "lt_builtin_binop", 3);
     add_builtin(module, toy_struct_type, "lt_builtin_unop", 2);
     add_builtin(module, toy_struct_type, "lt_builtin_truthy", 1);
-
-    vector<unsigned int> type_ref{0};
-    vector<unsigned int> value_ref{1};
-
-    char* test_string = (char*)allocate(sizeof(char) * 64);
-    strcpy(test_string, "JITted code\n");
-    llvm::LLVMContext& ctx = module->getContext();
-    llvm::IRBuilder<>* builder = new llvm::IRBuilder<>(ctx);
-
-    llvm::Function* fn = module->getFunction("lt_builtin_puts");
-
-    assert(fn != nullptr);
-
-    llvm::Value* value_intermediate = builder->CreateInsertValue(
-      llvm::UndefValue::get(toy_struct_type), 
-      llvm::ConstantInt::get(llvm::Type::getInt8Ty(ctx), llvm::APInt(8, (int)ValueType::FloatingPoint)),
-      type_ref
-    );
-
-    double fp_val = 0.5;
-
-    llvm::Value* ptr_as_int = llvm::ConstantInt::get(llvm::Type::getInt64Ty(ctx), *((int64_t*)&fp_val));
-
-    llvm::FunctionType* test_fn_type = llvm::FunctionType::get(
-      llvm::Type::getDoubleTy(ctx),
-      llvm::None,
-      false
-    );
-    llvm::Function* test_fn = llvm::Function::Create(
-      test_fn_type,
-      llvm::Function::ExternalLinkage,
-      "lt_struct_test_fn",
-      *module
-    );
-    llvm::BasicBlock* test_block = llvm::BasicBlock::Create(ctx, "", test_fn);
-    builder->SetInsertPoint(test_block);
-
-    llvm::Value* value = builder->CreateInsertValue(value_intermediate,
-      ptr_as_int,
-      value_ref
-    );
-    vector<llvm::Value*> args;
-    args.push_back(value);
-    builder->CreateCall(fn, args);
-    builder->CreateRet(llvm::ConstantFP::get(ctx, llvm::APFloat(1.0)));
+    add_builtin(module, toy_struct_type, "lt_builtin_get_var", 2);
+    add_builtin(module, toy_struct_type, "lt_builtin_set_var", 3);
+    add_builtin(module, toy_struct_type, "lt_builtin_puts2", 2);
+    add_builtin(module, toy_struct_type, "lt_builtin_puts3", 3);
   }
 }

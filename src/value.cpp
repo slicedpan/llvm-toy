@@ -1,8 +1,23 @@
 #include "value.hpp"
 #include "memory_allocation.hpp"
 #include <cstring>
+#include <bitset>
 
 namespace LLVMToy {
+  string Value::hexdump() const {
+    stringstream ss;
+    ss << std::hex << type << pad[0] << pad[1] << pad[2] << pad[3] << pad[4] << pad[5] << pad[6] << int_value;
+    return ss.str();
+  }
+
+  string Value::bindump() const {
+    stringstream ss;
+    ss << std::bitset<8>{type} << std::bitset<8>{pad[0]} << std::bitset<8>{pad[1]} << std::bitset<8>{pad[2]}
+      << std::bitset<8>{pad[3]} << std::bitset<8>{pad[4]} << std::bitset<8>{pad[5]} << std::bitset<8>{pad[6]}
+      << std::bitset<64>{int_value};
+    return ss.str();
+  }
+
   string Value::to_string() const {
     stringstream ss;
     switch (type) {
@@ -13,7 +28,7 @@ namespace LLVMToy {
         ss << "function:" << function;
         break;
       case ValueType::NativeFunction:
-        ss << "native_function:" << native_function_ptr;
+        ss << "native_function:" << native_ptr;
         break;
       case ValueType::String:
         ss << "\"" << string_value << "\"";
@@ -29,6 +44,9 @@ namespace LLVMToy {
         break;
       case ValueType::Boolean:
         ss << (bool_value ? "true" : "false");
+        break;
+      case ValueType::NativePointer:
+        ss << "ptr: " << native_ptr;
         break;
     }
     return ss.str();
@@ -60,6 +78,12 @@ namespace LLVMToy {
     }
     // nil or undefined
     return false;
+  }
+
+  Value Value::make_native_ptr(void* ptr) {
+    Value val{ ValueType::NativePointer };
+    val.native_ptr = ptr;
+    return val;
   }
 
   Value Value::make_string(string src) {

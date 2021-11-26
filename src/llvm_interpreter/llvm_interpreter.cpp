@@ -1,8 +1,10 @@
 #include "llvm_interpreter.hpp"
 #include "llvm/Support/TargetSelect.h"
+#include "llvm/IR/Verifier.h"
 #include "llvm_ir_generator.hpp"
 #include "llvm_jit_compiler.hpp"
 #include "kaleidoscope_jit.hpp"
+#include "llvm/Support/raw_os_ostream.h"
 
 namespace LLVMToy {
 
@@ -36,6 +38,13 @@ namespace LLVMToy {
   void LLVMInterpreter::run() {
     auto k_jit = ExitOnErr(llvm::orc::KaleidoscopeJIT::Create());
     auto RT = k_jit->getMainJITDylib().createResourceTracker();
+
+    llvm::raw_os_ostream os(cout);
+    if (llvm::verifyModule(*ir_generator->get_module(), &os)) {
+      cout << "Errors found in module!\n";
+      return;
+    }
+
     std::unique_ptr<llvm::Module> module_ptr(ir_generator->get_module());
     std::unique_ptr<llvm::LLVMContext> ctx_ptr(&module_ptr->getContext());
     auto tsm = llvm::orc::ThreadSafeModule(std::move(module_ptr), std::move(ctx_ptr));

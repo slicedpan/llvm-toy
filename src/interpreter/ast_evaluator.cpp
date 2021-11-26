@@ -89,7 +89,7 @@ namespace LLVMToy {
     Value function_value;
     function_value.type = ValueType::Function;
     function_value.function = function;
-    current_scope->set_variable(function_declaration->name.content, function_value);
+    push_value(function_value);
   }
 
   void ASTEvaluator::visitIfStatement(IfStatement* if_statement) {

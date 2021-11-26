@@ -11,6 +11,11 @@
 #include <cassert>
 #include "llvm_interpreter/llvm_ir_generator.hpp"
 #include "llvm_interpreter/llvm_interpreter.hpp"
+#include "value.hpp"
+
+namespace LLVMToy {
+  class Scope;
+}
 
 int main(int argc, char** argv) {
   LLVMToy::Lexer lexer;
@@ -22,6 +27,7 @@ int main(int argc, char** argv) {
     parser.parse();
   } catch (ParserError& e) {
     printf("Error: %s\n", e.what());
+    exit(1);
   }
 
   LLVMToy::ASTPrinter debug_printer;
@@ -30,6 +36,8 @@ int main(int argc, char** argv) {
   // LLVMToy::LLVMIRGenerator ir_generator;
   // ir_generator.visitStatements(parser.get_statements());
   // ir_generator.print();
+
+  std::cout << sizeof(LLVMToy::Value);
 
   LLVMToy::LLVMInterpreter interpreter;
   interpreter.initialize();

@@ -19,7 +19,6 @@ namespace LLVMToy {
       void debug_print();
     private:
       Statement* parse_variable_declaration();
-      Statement* parse_function_declaration();
       Statement* parse_statement();
       Statement* parse_return_statement();
       Statement* parse_expression_statement();
@@ -28,6 +27,7 @@ namespace LLVMToy {
       Expression* parse_expression() {
         return parse_expression(ParserPrecedence::Parentheses);
       }
+      Expression* parse_function_declaration(int);
       Expression* parse_expression(int);
       Expression* parse_unary_expression(int);
       Expression* parse_binary_expression(int);

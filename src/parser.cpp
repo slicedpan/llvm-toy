@@ -49,7 +49,7 @@ namespace LLVMToy {
 
   Statement* Parser::parse_if_statement() {
     if (peek().type != Types::Token::KeywordIf) {
-      return parse_function_declaration();
+      return parse_return_statement();
     }
     consume();
     consume_type(Types::Token::LeftParen, "Expected '(' after if keyword");
@@ -96,12 +96,17 @@ namespace LLVMToy {
     return ret;
   }
 
-  Statement* Parser::parse_function_declaration() {
+  Expression* Parser::parse_function_declaration(int max_precedence) {
     if (peek().type != Types::Token::KeywordFunction) {
-      return parse_return_statement();      
+      return parse_unary_expression(max_precedence);      
     }
     consume();
-    const Token& id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
+    Token id_token;
+    // Sentinel value
+    id_token.type = Types::Token::EndOfFile;
+    if (peek().type != Types::Token::LeftParen) {
+      id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
+    }
     consume_type(Types::Token::LeftParen, "Expected '('");
     std::vector<Token> arguments;
     if (peek().type != Types::Token::RightParen) {
@@ -118,7 +123,10 @@ namespace LLVMToy {
       consume();
     }
     consume_type(Types::Token::LeftBrace, "Expected function block (missing '{')");
-    Statement* ret = new FunctionDeclaration(id_token, arguments, parse_block());
+    Expression* ret = new FunctionDeclaration(arguments, parse_block());
+    if (id_token.type == Types::Token::Identifier) {
+      ret = new Assignment(new VariableReference(id_token), ret);
+    }
     consume_type(Types::Token::RightBrace, "Expected '}' at end of function body");
     return ret;
   }
@@ -168,6 +176,12 @@ namespace LLVMToy {
             next_expr = new Assignment(expr, parse_expression(ParserPrecedence::Assign));
           }
           break;
+        case Types::Token::OperatorDoubleEquals:
+          if (max_precedence > ParserPrecedence::Equality) {
+            consume();
+            next_expr = new BinaryOperator(next, expr, parse_expression(ParserPrecedence::Equality));
+          }
+          break;
         case Types::Token::LeftParen:
           consume();
           next_expr = new FunctionCall(expr, parse_argument_expressions());
@@ -197,7 +211,7 @@ namespace LLVMToy {
 
   Expression* Parser::parse_parenthesised_expression(int max_precedence) {
     if (peek().type != Types::Token::LeftParen) {
-      return parse_unary_expression(max_precedence);
+      return parse_function_declaration(max_precedence);
     }
     consume();
     Expression* ret = parse_expression(max_precedence);

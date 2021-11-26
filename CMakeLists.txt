@@ -45,6 +45,7 @@ src/llvm_interpreter/llvm_ir_generator.cpp
 src/llvm_interpreter/llvm_interpreter.cpp
 src/llvm_interpreter/llvm_jit_compiler.cpp
 src/llvm_interpreter/llvm_builtins.cpp
+src/llvm_interpreter/debug_printer.cpp
 ${FLEX_Lexer_OUTPUTS})
 
 llvm_map_components_to_libnames(llvm_libs support core irreader x86asmparser target x86codegen orcjit)
