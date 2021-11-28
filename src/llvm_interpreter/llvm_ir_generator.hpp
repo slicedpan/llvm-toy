@@ -52,7 +52,7 @@ namespace LLVMToy {
       llvm::Module* llvm_module;
       llvm::IRBuilder<>* ir_builder;
       unsigned int type_index[1] = {0};
-      unsigned int value_index[1] = {4};
+      unsigned int value_index[1] = {2};
       llvm::ArrayRef<unsigned int> type_ref;
       llvm::ArrayRef<unsigned int> value_ref;
       Scope* root_scope;

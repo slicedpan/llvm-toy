@@ -21,15 +21,13 @@ namespace LLVMToy {
     current_scope = root_scope;
     cout << "current_scope: " << current_scope << "\n";
     llvm_module = new llvm::Module("llvmtoy", *llvm_context);
-    llvm::Type* struct_element_types[5];
+    llvm::Type* struct_element_types[3];
     struct_element_types[0] = llvm::IntegerType::getInt8Ty(*llvm_context);
-    struct_element_types[1] = llvm::IntegerType::getInt8Ty(*llvm_context);
-    struct_element_types[2] = llvm::IntegerType::getInt16Ty(*llvm_context);   
-    struct_element_types[3] = llvm::IntegerType::getInt32Ty(*llvm_context);
-    struct_element_types[4] = llvm::IntegerType::getInt64Ty(*llvm_context);
+    struct_element_types[1] = llvm::VectorType::get(llvm::IntegerType::getInt8Ty(*llvm_context), 7, false);
+    struct_element_types[2] = llvm::IntegerType::getInt64Ty(*llvm_context);
     toy_value_type = llvm::StructType::create(
       *llvm_context,
-      llvm::ArrayRef<llvm::Type*>(struct_element_types, 5),
+      llvm::ArrayRef<llvm::Type*>(struct_element_types, 3),
       "lt_struct_type",
       true
     );
@@ -39,6 +37,7 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::print_lt_value(llvm::Value* val) {
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts");
+    fn->setCallingConv(llvm::CallingConv::Fast);
     ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{val});
   }
 
@@ -136,7 +135,9 @@ namespace LLVMToy {
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts3");
     assert(fn && "lt_builtin_set_var not found");
     llvm::Value* name_val = create_lt_value(Value::make_string(ref->name.content));
-    ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{create_scope_value(), name_val, right});
+    llvm::Value* scope_val = create_scope_value();
+    print_lt_value(scope_val);
+    ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{scope_val, name_val, right});
   }
 
   void LLVMIRGenerator::visitBinaryOperator(BinaryOperator* binary_operator) {
@@ -286,8 +287,10 @@ namespace LLVMToy {
       llvm::Value* name_val = create_lt_value(Value::make_string(variable_reference->name.content));
       llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts2");
       assert(fn && "lt_builtin_get_var not found");
+      llvm::Value* scope_val = create_scope_value();
+      print_lt_value(scope_val);
       push_value(
-        ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{create_scope_value(), name_val})
+        ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{scope_val, name_val})
       );
     }
   }

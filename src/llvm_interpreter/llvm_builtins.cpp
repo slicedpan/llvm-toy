@@ -70,6 +70,7 @@ namespace LLVMToy {
     }
     llvm::FunctionType* fn_type = llvm::FunctionType::get(toy_struct_type, llvm::ArrayRef<llvm::Type*>(types, arity), false);
     llvm::Function* fn = llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, name, *module);
+    fn->setCallingConv(llvm::CallingConv::Fast);
   }
 
   void LLVMBuiltins::add_builtins(llvm::Module* module, llvm::Type* toy_struct_type) {
