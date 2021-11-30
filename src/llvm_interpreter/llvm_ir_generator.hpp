@@ -35,7 +35,6 @@ namespace LLVMToy {
       void visitStatements(const vector<Statement*>&);
       
       llvm::Value* create_lt_value(Value);
-      llvm::Value* create_lt_value(int8_t, llvm::Value*);
       llvm::Value* create_scope_value();
       void print();
       llvm::Module* get_module();

@@ -61,22 +61,19 @@ namespace LLVMToy {
     return llvm::ConstantInt::get(toy_value_type, llvm::APInt(64, v.uint_value));
   }
 
-  llvm::Value* LLVMIRGenerator::create_lt_value(int8_t type, llvm::Value* val_as_int64) {
-    llvm::Value* value_intermediate = ir_builder->CreateInsertValue(
-      llvm::UndefValue::get(toy_value_type), 
-      llvm::ConstantInt::get(llvm::Type::getInt8Ty(*llvm_context), llvm::APInt(8, (uint8_t)type)),
-      type_ref
-    );
-
-    return ir_builder->CreateInsertValue(
-      value_intermediate,
-      val_as_int64,
-      value_ref
-    );
-  }
-
   llvm::Value* LLVMIRGenerator::create_pointer_value(uint8_t type, llvm::Value* pointer) {
-
+    uint64_t base_value = QNAN | POINTER_BIT;
+    switch (type) {
+      case ValueType::Function:
+        base_value |= FUNCTION_POINTER;        
+        break;
+      default:
+        base_value |= GENERIC_POINTER;
+        break;
+    }
+    llvm::Value* base = llvm::ConstantInt::get(llvm::Type::getInt64Ty(*llvm_context), llvm::APInt(64, base_value));
+    llvm::Value* ptr_as_uint64 = ir_builder->CreatePtrToInt(pointer, llvm::Type::getInt64Ty(*llvm_context));
+    return ir_builder->CreateOr(base, ptr_as_uint64);
   }
 
   llvm::Module* LLVMIRGenerator::get_module() {
@@ -145,14 +142,19 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::visitFunctionCall(FunctionCall* function_call) {
     vector<llvm::Value*> arguments;
+    vector<llvm::Type*> arg_types;
     for (int i = 0; i < function_call->arguments.size(); ++i) {
       arguments.push_back(gather_value(function_call->arguments[i]));
+      arg_types.push_back(toy_value_type);
     }
     llvm::Value* callee = gather_value(function_call->function);
-    // TODO write branching that checks to see what type of function this is
-    llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts");
-    assert(fn && "lt_builtin_puts not found");
-    push_value(ir_builder->CreateCall(fn, arguments));
+    llvm::FunctionType* fn_type = llvm::FunctionType::get(toy_value_type, arg_types, false);
+    llvm::Value* unmasked_pointer = ir_builder->CreateIntToPtr(
+      ir_builder->CreateAnd(callee, POINTER_HI_MASK),
+      fn_type->getPointerTo()
+    );
+    
+    push_value(ir_builder->CreateCall(fn_type, unmasked_pointer, arguments));
   }
 
   void LLVMIRGenerator::visitFunctionDeclaration(FunctionDeclaration* function_declaration) {
@@ -166,9 +168,7 @@ namespace LLVMToy {
     ss << "fn" << (rand() % 90000) + 10000;
 
     llvm::FunctionType* fn_type = llvm::FunctionType::get(toy_value_type, arg_types, false);
-    llvm::Function* fn = llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, ss.str(), *llvm_module);
-
-    llvm::Value* fn_ptr_as_int = ir_builder->CreateBitCast(fn, llvm::Type::getInt64Ty(*llvm_context));    
+    llvm::Function* fn = llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, ss.str(), *llvm_module);  
 
     llvm::BasicBlock* body_block = llvm::BasicBlock::Create(*llvm_context, "", fn);
     ir_builder->SetInsertPoint(body_block);
@@ -179,7 +179,7 @@ namespace LLVMToy {
     ir_builder->CreateRet(create_lt_value(Value::make_nil()));
     ir_builder->SetInsertPoint(&outer_function->back());
     // TODO this is wrong
-    push_value(create_lt_value((int8_t)ValueType::Function, fn_ptr_as_int));
+    push_value(create_pointer_value(ValueType::Function, fn));
   }
 
   void LLVMIRGenerator::visitIfStatement(IfStatement* if_statement) {
@@ -256,7 +256,7 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::visitVariableReference(VariableReference* variable_reference) {
     if (variable_reference->name.content == "puts") {
-      push_value(create_lt_value(Value::make_function_ptr(nullptr)));
+      push_value(create_lt_value(Value::make_function_ptr((void*)lt_builtin_puts)));
     } else {
       llvm::Value* name_val = create_lt_value(Value::make_string(variable_reference->name.content));
       llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts2");
