@@ -21,23 +21,13 @@ namespace LLVMToy {
     current_scope = root_scope;
     cout << "current_scope: " << current_scope << "\n";
     llvm_module = new llvm::Module("llvmtoy", *llvm_context);
-    llvm::Type* struct_element_types[3];
-    struct_element_types[0] = llvm::IntegerType::getInt8Ty(*llvm_context);
-    struct_element_types[1] = llvm::VectorType::get(llvm::IntegerType::getInt8Ty(*llvm_context), 7, false);
-    struct_element_types[2] = llvm::IntegerType::getInt64Ty(*llvm_context);
-    toy_value_type = llvm::StructType::create(
-      *llvm_context,
-      llvm::ArrayRef<llvm::Type*>(struct_element_types, 3),
-      "lt_struct_type",
-      true
-    );
+    toy_value_type = llvm::Type::getInt64Ty(*llvm_context);
     LLVMBuiltins::add_builtins(llvm_module, toy_value_type);
     register_debug_functions(llvm_module);
   }
 
   void LLVMIRGenerator::print_lt_value(llvm::Value* val) {
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts");
-    fn->setCallingConv(llvm::CallingConv::Fast);
     ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{val});
   }
 
@@ -62,28 +52,13 @@ namespace LLVMToy {
   }
 
   llvm::Value* LLVMIRGenerator::create_scope_value() {
-    Value scope_as_val = Value::make_native_ptr((void*)current_scope);
+    Value scope_as_val = Value::make_generic_ptr((void*)current_scope);
     cout << "csv: current_scope: " << scope_as_val.bindump() << endl;
     return create_lt_value(scope_as_val);
   }
 
   llvm::Value* LLVMIRGenerator::create_lt_value(Value v) {
-    llvm::Value* value_intermediate = ir_builder->CreateInsertValue(
-      llvm::UndefValue::get(toy_value_type), 
-      llvm::ConstantInt::get(llvm::Type::getInt8Ty(*llvm_context), llvm::APInt(8, (uint8_t)v.type)),
-      type_ref
-    );
-
-    llvm::Value* result_as_int = llvm::ConstantInt::get(
-      llvm::Type::getInt64Ty(*llvm_context),
-      llvm::APInt(64, v.int_value)
-    );
-
-    return ir_builder->CreateInsertValue(
-      value_intermediate,
-      result_as_int,
-      value_ref
-    );
+    return llvm::ConstantInt::get(toy_value_type, llvm::APInt(64, v.uint_value));
   }
 
   llvm::Value* LLVMIRGenerator::create_lt_value(int8_t type, llvm::Value* val_as_int64) {
@@ -98,6 +73,10 @@ namespace LLVMToy {
       val_as_int64,
       value_ref
     );
+  }
+
+  llvm::Value* LLVMIRGenerator::create_pointer_value(uint8_t type, llvm::Value* pointer) {
+
   }
 
   llvm::Module* LLVMIRGenerator::get_module() {
@@ -135,18 +114,13 @@ namespace LLVMToy {
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts3");
     assert(fn && "lt_builtin_set_var not found");
     llvm::Value* name_val = create_lt_value(Value::make_string(ref->name.content));
-    llvm::Value* scope_val = create_scope_value();
-    print_lt_value(scope_val);
-    ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{scope_val, name_val, right});
+    ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{create_scope_value(), name_val, right});
   }
 
   void LLVMIRGenerator::visitBinaryOperator(BinaryOperator* binary_operator) {
     llvm::Value* left = gather_value(binary_operator->left);    
     llvm::Value* right = gather_value(binary_operator->right);
-    Value op_as_value;
-    op_as_value.type = ValueType::Integer;
-    op_as_value.int_value = (int64_t)binary_operator->op;
-    llvm::Value* op = create_lt_value(op_as_value);
+    llvm::Value* op = create_lt_value(Value::make_number((double)(uint32_t)binary_operator->op));
 
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_binop");
     assert(fn && "lt_builtin_binop not found");
@@ -166,7 +140,7 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
     double fp_val = atof(floating_point_literal->value.content.c_str());
-    push_value(create_lt_value(Value::make_float(fp_val)));
+    push_value(create_lt_value(Value::make_number(fp_val)));
   }
 
   void LLVMIRGenerator::visitFunctionCall(FunctionCall* function_call) {
@@ -204,6 +178,7 @@ namespace LLVMToy {
     ir_builder->SetInsertPoint(body_block);
     ir_builder->CreateRet(create_lt_value(Value::make_nil()));
     ir_builder->SetInsertPoint(&outer_function->back());
+    // TODO this is wrong
     push_value(create_lt_value((int8_t)ValueType::Function, fn_ptr_as_int));
   }
 
@@ -256,8 +231,7 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitIntegerLiteral(IntegerLiteral* integer_literal) {
-    int64_t int_val = atol(integer_literal->value.content.c_str());
-    push_value(create_lt_value(Value::make_int(int_val)));
+    push_value(create_lt_value(Value::make_number(atof(integer_literal->value.content.c_str()))));
   }
 
   void LLVMIRGenerator::visitReturnStatement(ReturnStatement*) {
@@ -270,7 +244,7 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::visitUnaryOperator(UnaryOperator* unary_operator) {
     llvm::Value* operand = gather_value(unary_operator->expression);
-    llvm::Value* op_val = create_lt_value(Value::make_int((int64_t)unary_operator->op));
+    llvm::Value* op_val = create_lt_value(Value::make_number((int32_t)unary_operator->op));
     llvm::Function* fn = llvm_module->getFunction("lt_builtin_unop");
     assert(fn && "lt_builtin_unop not found");
     push_value(ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{op_val, operand}));
@@ -282,15 +256,13 @@ namespace LLVMToy {
 
   void LLVMIRGenerator::visitVariableReference(VariableReference* variable_reference) {
     if (variable_reference->name.content == "puts") {
-      push_value(create_lt_value(Value::make_builtin_fn(variable_reference->name.content.c_str())));
+      push_value(create_lt_value(Value::make_function_ptr(nullptr)));
     } else {
       llvm::Value* name_val = create_lt_value(Value::make_string(variable_reference->name.content));
       llvm::Function* fn = llvm_module->getFunction("lt_builtin_puts2");
       assert(fn && "lt_builtin_get_var not found");
-      llvm::Value* scope_val = create_scope_value();
-      print_lt_value(scope_val);
       push_value(
-        ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{scope_val, name_val})
+        ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{create_scope_value(), name_val})
       );
     }
   }

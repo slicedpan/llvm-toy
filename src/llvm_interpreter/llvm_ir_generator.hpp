@@ -41,7 +41,8 @@ namespace LLVMToy {
       llvm::Module* get_module();
       void reset_module();
     private:
-      llvm::StructType* toy_value_type;
+      llvm::Value* create_pointer_value(uint8_t, llvm::Value*);
+      llvm::Type* toy_value_type;
       llvm::Value* gather_value(ASTNode*);
       llvm::Value* pop_value();      
       void push_value(llvm::Value*);

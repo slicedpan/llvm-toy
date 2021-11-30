@@ -2,6 +2,7 @@
 #define LLVM_BUILTINS_HPP
 
 #include "../value.hpp"
+#include "../namespace.hpp"
 
 #ifdef _WIN32
 #define DLLEXPORT __declspec(dllexport)
@@ -22,6 +23,7 @@ extern "C" DLLEXPORT LLVMToy::Value lt_builtin_puts3(LLVMToy::Value, LLVMToy::Va
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_binop(LLVMToy::Value, LLVMToy::Value, LLVMToy::Value);
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_unop(LLVMToy::Value, LLVMToy::Value);
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_truthy(LLVMToy::Value);
+extern "C" DLLEXPORT LLVMToy::Value lt_builtin_build_pointer(uint8_t, void*);
 
 namespace LLVMToy {
   class LLVMBuiltins {

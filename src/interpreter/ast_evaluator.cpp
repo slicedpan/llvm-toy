@@ -56,20 +56,18 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
-    Value fp_value;
-    fp_value.type = ValueType::FloatingPoint;
-    fp_value.fp_value = atof(floating_point_literal->value.content.c_str());
+    Value fp_value = Value::make_number(atof(floating_point_literal->value.content.c_str()));
     push_value(fp_value);   
   }
 
   void ASTEvaluator::visitFunctionCall(FunctionCall* function_call) {
     Value function_value = gather_value(function_call->function);
     // TODO error if function type is not Function
-    if (function_value.type != ValueType::Function) {
+    if (function_value.get_type() != ValueType::Function) {
       cout << "Tried to call a non-function type" << endl;
       return;
     }
-    Function* function = function_value.function;
+    Function* function = (Function*)function_value.pointer_value();
     Scope* child_scope = current_scope->create_child_scope();
     for (int i = 0; i < function->get_arguments().size(); ++i) {
       child_scope->set_variable(function->get_arguments()[i], gather_value(function_call->arguments[i]));
@@ -86,9 +84,7 @@ namespace LLVMToy {
       arguments.push_back(function_declaration->arguments[i].content);
     }
     Function* function = new Function(arguments, function_declaration->body);
-    Value function_value;
-    function_value.type = ValueType::Function;
-    function_value.function = function;
+    Value function_value = Value::make_function_ptr(function);
     push_value(function_value);
   }
 
@@ -114,7 +110,7 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitIntegerLiteral(IntegerLiteral* integer_literal) {
-    push_value(Value::make_int(atoi(integer_literal->value.content.c_str())));
+    push_value(Value::make_number(atof(integer_literal->value.content.c_str())));
   }
 
   void ASTEvaluator::visitReturnStatement(ReturnStatement* return_statement) {
