@@ -1,5 +1,1 @@
-puts(stuff)
-function foo() {
-  puts("bar")
-}
-
+puts("foo")

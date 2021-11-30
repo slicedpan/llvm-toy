@@ -2,6 +2,7 @@ cmake_minimum_required (VERSION 2.6)
 project(LLVM-Test)
 
 find_package(LLVM REQUIRED CONFIG)
+find_package(Catch2 3 REQUIRED)
 
 message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
 message(STATUS "Using LLVMConfig.cmake in: ${LLVM_DIR}")
@@ -23,9 +24,21 @@ add_custom_command(
   DEPENDS src/data/tokens.yml src/templates/*
   OUTPUT src/generated/lexer_functions.cpp src/generated/lexer.l src/generated/token_types.hpp
   COMMENT "Generating token types for lexer"
+  )
+  
+llvm_map_components_to_libnames(llvm_libs support core irreader x86asmparser target x86codegen orcjit)
+
+file(GLOB TESTS ./test/*.cpp)
+
+add_executable(tests
+src/value.cpp
+src/memory_allocation.cpp
+${TESTS}
 )
 
-add_executable(bin/llvm-test
+target_link_libraries(tests PRIVATE ${llvm_libs} Catch2::Catch2WithMain)
+
+add_executable(llvm-test
 src/main.cpp 
 src/parser.cpp 
 src/lexer.cpp 
@@ -46,7 +59,11 @@ src/llvm_interpreter/llvm_interpreter.cpp
 src/llvm_interpreter/llvm_jit_compiler.cpp
 src/llvm_interpreter/llvm_builtins.cpp
 src/llvm_interpreter/debug_printer.cpp
-${FLEX_Lexer_OUTPUTS})
+${FLEX_Lexer_OUTPUTS}
+)
 
-llvm_map_components_to_libnames(llvm_libs support core irreader x86asmparser target x86codegen orcjit)
-target_link_libraries(bin/llvm-test ${llvm_libs})
+target_link_libraries(llvm-test ${llvm_libs})
+
+include(CTest)
+include(Catch)
+catch_discover_tests(tests)
