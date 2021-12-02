@@ -1,4 +1,7 @@
+var a = 1
 function stuff() {
-  puts("foo")
+  puts(a)
 }
+
+a = 2
 stuff()

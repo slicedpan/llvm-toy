@@ -15,8 +15,7 @@ namespace LLVMToy {
       if (parent_scope) {
         return parent_scope->lookup_variable(name);
       }
-      Value undefined{ ValueType::Undefined };
-      return undefined;
+      return Value::make_undefined();
     }
     return variables[name];
   }

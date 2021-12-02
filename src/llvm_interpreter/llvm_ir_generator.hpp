@@ -14,6 +14,7 @@ namespace llvm {
 
 namespace LLVMToy {
   class Scope;
+  class LLVMScope;
 
   class LLVMIRGenerator : public ASTVisitor {
     public:
@@ -40,8 +41,11 @@ namespace LLVMToy {
       llvm::Module* get_module();
       void reset_module();
     private:
+      void setup_module();
       llvm::Value* create_pointer_value(uint8_t, llvm::Value*);
       llvm::Type* toy_value_type;
+      llvm::Value* true_value;
+      llvm::Value* false_value;
       llvm::Value* gather_value(ASTNode*);
       llvm::Value* pop_value();      
       void push_value(llvm::Value*);
@@ -55,8 +59,8 @@ namespace LLVMToy {
       unsigned int value_index[1] = {2};
       llvm::ArrayRef<unsigned int> type_ref;
       llvm::ArrayRef<unsigned int> value_ref;
-      Scope* root_scope;
-      Scope* current_scope;
+      LLVMScope* root_scope;
+      LLVMScope* current_scope;
   };
 }
 #endif

@@ -12,46 +12,45 @@
 #include "../interpreter/scope.hpp"
 #include <cstdint>
 
-LLVMToy::Value lt_builtin_set_var(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_set_var(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
   LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.pointer_value();
   scope->set_variable(name.to_string(), value);
   return value;
 }
 
-LLVMToy::Value lt_builtin_get_var(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_get_var(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
   LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.pointer_value();
   return scope->lookup_variable(name.to_string());
 }
 
-LLVMToy::Value lt_builtin_puts(LLVMToy::Value arg) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_puts(LLVMToy::Value arg) {
   std::cout << arg.to_string() << std::endl;
   return LLVMToy::Value::make_nil();
 }
 
-LLVMToy::Value lt_builtin_puts2(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_puts2(LLVMToy::Value scope_as_val, LLVMToy::Value name) {
   LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.pointer_value();
-  std::cout << "get_var scope_as_val: " << scope_as_val.bindump() << std::endl;
-  return scope->lookup_variable(name.to_string());
+  LLVMToy::Value val = scope->lookup_variable(name.to_string());
+  return val;
 }
 
-LLVMToy::Value lt_builtin_puts3(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_puts3(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
   LLVMToy::Scope* scope = (LLVMToy::Scope*)scope_as_val.pointer_value();
-  std::cout << "set_var scope_as_val: " << scope_as_val.bindump() << std::endl;
   scope->set_variable(name.to_string(), value);
   return value;
 }
 
-LLVMToy::Value lt_builtin_binop(LLVMToy::Value op, LLVMToy::Value left, LLVMToy::Value right) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_binop(LLVMToy::Value op, LLVMToy::Value left, LLVMToy::Value right) {
   LLVMToy::Types::Operator op_type = (LLVMToy::Types::Operator)op.float_value;
   return LLVMToy::OperatorAction::apply_binary_operator(op_type, left, right);
 }
 
-LLVMToy::Value lt_builtin_unop(LLVMToy::Value op, LLVMToy::Value operand) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_unop(LLVMToy::Value op, LLVMToy::Value operand) {
   LLVMToy::Types::Operator op_type = (LLVMToy::Types::Operator)op.float_value;
   return LLVMToy::OperatorAction::apply_unary_operator(op_type, operand);
 }
 
-LLVMToy::Value lt_builtin_truthy(LLVMToy::Value value) {
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_truthy(LLVMToy::Value value) {
   return LLVMToy::Value::make_bool(value.is_truthy());
 }
 
