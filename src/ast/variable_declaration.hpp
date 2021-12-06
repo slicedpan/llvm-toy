@@ -11,14 +11,15 @@ namespace LLVMToy {
   class VariableDeclaration : public Statement {
     public:
       VariableDeclaration(const Token& name, Expression* initializer) {        
-        this->name = name;        
-        this->initializer = initializer;        
+        this->name = name;
+        this->initializer = initializer;
+        this->is_closure = false;
       }
       ~VariableDeclaration() {
         delete initializer;
       }
       void accept(ASTVisitor& v);
-      
+      bool is_closure;
       Token name;      
       Expression* initializer;      
   };

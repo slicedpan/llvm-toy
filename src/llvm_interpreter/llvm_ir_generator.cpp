@@ -277,7 +277,12 @@ namespace LLVMToy {
     if (variable_reference->name.content == "puts") {
       push_value(create_lt_value(Value::make_function_ptr((void*)lt_builtin_puts)));
     } else {
-      push_value(current_scope->lookup_value(variable_reference->name.content));
+      LLVMScope::LookupResult res = current_scope->lookup_value(variable_reference->name.content);
+      if (res.depth != current_scope->depth) {
+        
+      } else {
+        push_value(res.value);
+      }      
     }
   }
 

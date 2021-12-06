@@ -153,14 +153,23 @@ namespace LLVMToy {
 
   void ASTPrinter::visitVariableDeclaration(VariableDeclaration* variable_declaration) {
     std::stringstream ss;
-    ss << "VARIABLE_DECL(" << variable_declaration->name.content << ")\n";    
+    if (variable_declaration->is_closure) {
+      ss << "CLOSURE_VARIABLE_DECL(";
+    } else {
+      ss << "VARIABLE_DECL(";
+    }
+    ss << variable_declaration->name.content << ")\n";
     ss << "initializer:\n" << gather_output(variable_declaration->initializer);
     push_string(ss.str());
   }
 
   void ASTPrinter::visitVariableReference(VariableReference* variable_reference) {
     std::stringstream ss;
-    ss << "VAR_REF(" << variable_reference->name.content << ")\n";
+    if (variable_reference->is_closure) {
+      ss << "CLOSURE_VAR_REF(" << variable_reference->name.content << ")\n";
+    } else {
+      ss << "VAR_REF(" << variable_reference->name.content << ")\n";  
+    } 
     push_string(ss.str());
   }
 }

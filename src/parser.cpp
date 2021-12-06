@@ -44,7 +44,9 @@ namespace LLVMToy {
       consume();
       expression = parse_expression(ParserPrecedence::Parentheses);
     }
-    return new VariableDeclaration(id_token, expression);
+    VariableDeclaration* var_decl = new VariableDeclaration(id_token, expression);
+    current_scope->add_declaration(id_token.content, var_decl);
+    return var_decl;
   }
 
   Statement* Parser::parse_if_statement() {
@@ -123,7 +125,11 @@ namespace LLVMToy {
       consume();
     }
     consume_type(Types::Token::LeftBrace, "Expected function block (missing '{')");
+    LexicalScope* last_scope = current_scope;
+    current_scope = current_scope->create_child();
     Expression* ret = new FunctionDeclaration(arguments, parse_block());
+    delete current_scope;
+    current_scope = last_scope;
     if (id_token.type == Types::Token::Identifier) {
       ret = new Assignment(new VariableReference(id_token), ret);
     }
@@ -221,7 +227,15 @@ namespace LLVMToy {
 
   Expression* Parser::parse_identifier(int max_precedence) {
     const Token& tok = consume_type(Types::Token::Identifier, "Expected identifier");
-    return new VariableReference(tok);
+    VariableReference* var_ref = new VariableReference(tok);
+    auto res = current_scope->find_var(tok.content);    
+    if (res.offset > 0 && res.declaration != nullptr) {
+      res.declaration->is_closure = true;
+      var_ref->is_closure = true;
+    } else if (res.offset == 0 && res.declaration != nullptr) {
+      var_ref->is_closure = res.declaration->is_closure;
+    }
+    return var_ref;
   }
 
   Expression* Parser::parse_literal(int max_precedence) {

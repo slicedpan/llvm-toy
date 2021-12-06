@@ -9,11 +9,13 @@
 #include "statement.hpp"
 #include "expression.hpp"
 #include "parser_precedence.hpp"
+#include "lexical_scope.hpp"
 
 namespace LLVMToy {
   class Parser {
     public:
-      Parser(const vector<Token>& tokens) : tokens(tokens) {}
+      Parser(const vector<Token>& tokens) : tokens(tokens), current_scope(new LexicalScope()) {}
+      ~Parser() { delete current_scope; }
       void parse();
       const std::vector<Statement*>& get_statements();
       void debug_print();
@@ -42,6 +44,7 @@ namespace LLVMToy {
       int token_index = 0;
       const vector<Token>& tokens;
       vector<Statement*> statements;
+      LexicalScope* current_scope;
   };
 }
 

@@ -8,30 +8,40 @@ namespace llvm {
 }
 
 namespace LLVMToy {
+
   class LLVMScope {
     public:
-      LLVMScope(LLVMScope* parent) {
+      struct LookupResult {
+        uint16_t depth;
+        llvm::Value* value;
+        LookupResult(uint16_t depth, llvm::Value* value) : depth(depth), value(value) {}      
+      };
+      LLVMScope(LLVMScope* parent, uint16_t depth) {
         this->parent = parent;
+        this->depth = depth;
+        parent->children.push_back(this);
       }
-      LLVMScope() : LLVMScope(nullptr) {}
+      LLVMScope() : LLVMScope(nullptr, 0) {}
       LLVMScope* create_child() {
-        return new LLVMScope(this);
+        return new LLVMScope(this, depth + 1);
       }
-      llvm::Value* lookup_value(string name) {
+      LookupResult lookup_value(string name) {
         if (variables.count(name) > 0) {
-          return variables[name];
+          return LookupResult(depth, variables[name]);
         }
         if (parent) {
           return parent->lookup_value(name);
         } else {
-          return nullptr;
+          return LookupResult(depth, nullptr);;
         }
       }
       void set_value(string name, llvm::Value* value) {
         variables[name] = value;
       }
       LLVMScope* parent;
+      uint16_t depth;
     private:
+      vector<LLVMScope*> children;
       map<string, llvm::Value*> variables;
   };
 }

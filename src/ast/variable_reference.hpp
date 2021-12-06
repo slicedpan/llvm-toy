@@ -10,10 +10,11 @@ namespace LLVMToy {
     public:
       VariableReference(const Token& name) {        
         this->name = name;
+        this->is_closure = false;
       }
       bool assignable() { return true; }
       void accept(ASTVisitor& v);
-    
+      bool is_closure;
       Token name;
   };
 }

@@ -1,7 +1,19 @@
-var a = 1
-function stuff() {
-  puts(a)
+function outer() {
+  var x = "value"
+  function middle() {
+    function inner() {
+      puts(x)
+    }
+
+    puts("create inner closure")
+    return inner
+  }
+
+  puts("return from outer")
+  x = "foo"
+  return middle
 }
 
-a = 2
-stuff()
+var mid = outer()
+var in = mid()
+in()
