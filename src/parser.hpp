@@ -21,6 +21,7 @@ namespace LLVMToy {
       void debug_print();
     private:
       Statement* parse_variable_declaration();
+      Statement* parse_function_declaration();
       Statement* parse_statement();
       Statement* parse_return_statement();
       Statement* parse_expression_statement();
@@ -29,17 +30,17 @@ namespace LLVMToy {
       Expression* parse_expression() {
         return parse_expression(ParserPrecedence::Parentheses);
       }
-      Expression* parse_function_declaration(int);
       Expression* parse_expression(int);
-      Expression* parse_unary_expression(int);
-      Expression* parse_binary_expression(int);
       Expression* parse_parenthesised_expression(int);
+      Expression* parse_function_expression(int);
+      Expression* parse_unary_expression(int);
       Expression* parse_literal(int);
       Expression* parse_identifier(int);
       vector<Expression*> parse_argument_expressions();
       const Token& consume();
       const Token& peek();
       const Token& consume_type(Types::Token, string);
+      vector<Token> parse_function_parameters();
       bool match(Types::Token);
       int token_index = 0;
       const vector<Token>& tokens;

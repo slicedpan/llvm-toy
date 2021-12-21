@@ -10,7 +10,7 @@
 namespace LLVMToy {
   class ReturnStatement : public Statement {
     public:
-      ReturnStatement(Expression* expression) {
+      ReturnStatement(const Token& token, Expression* expression) : Statement(token) {
         this->expression = expression;
       }
       ~ReturnStatement() {

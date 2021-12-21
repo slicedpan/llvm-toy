@@ -7,12 +7,11 @@
 namespace LLVMToy {
   class BooleanLiteral : public Expression {
     public:
-      BooleanLiteral(const Token& value) {
+      BooleanLiteral(const Token& token, bool value) : Expression(token) {
         this->value = value;
       }
       void accept(ASTVisitor& v);
-     
-      Token value;
+      bool value;
   };
 }
 

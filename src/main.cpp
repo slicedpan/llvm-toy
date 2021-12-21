@@ -37,8 +37,6 @@ int main(int argc, char** argv) {
   // ir_generator.visitStatements(parser.get_statements());
   // ir_generator.print();
 
-  std::cout << sizeof(LLVMToy::Value);
-
   LLVMToy::LLVMInterpreter interpreter;
   interpreter.initialize();
   interpreter.interpret_statements(parser.get_statements());

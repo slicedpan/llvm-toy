@@ -10,6 +10,7 @@
 #include "llvm/IR/Type.h"
 #include "../interpreter/scope.hpp"
 #include "llvm_scope.hpp"
+#include "closure_container.hpp"
 
 namespace LLVMToy {
   LLVMIRGenerator::LLVMIRGenerator() : 
@@ -90,6 +91,8 @@ namespace LLVMToy {
   void LLVMIRGenerator::setup_module() {
     LLVMBuiltins::add_builtins(llvm_module, toy_value_type);
     register_debug_functions(llvm_module);
+    closure_container = new ClosureContainer();
+    return_flag = false;
   }
 
   llvm::Value* LLVMIRGenerator::pop_value() {
@@ -112,9 +115,20 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitAssignment(Assignment* assignment) {
+    if (return_flag)
+      return;
     llvm::Value* right = gather_value(assignment->right);
     VariableReference* ref = (VariableReference*)assignment->left;
-    current_scope->set_value(ref->name.content, right);
+    if (ref->is_closure) {
+      llvm::Function* fn = llvm_module->getFunction("lt_builtin_closure_write");
+      ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{
+        create_lt_value(Value::make_generic_ptr((void*)closure_container)),
+        create_lt_value(Value::make_number((double)closure_container->get_slot_for(ref->name))),
+        right
+      });
+    } else {
+      current_scope->set_value(ref->name, right);
+    }
   }
 
   void LLVMIRGenerator::visitBinaryOperator(BinaryOperator* binary_operator) {
@@ -130,17 +144,17 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitBooleanLiteral(BooleanLiteral* boolean_literal) {
-    bool value = boolean_literal->value.content == "true";
-    push_value(create_lt_value(Value::make_bool(value)));
+    push_value(create_lt_value(Value::make_bool(boolean_literal->value)));
   }
 
   void LLVMIRGenerator::visitExpressionStatement(ExpressionStatement* expression_statement) {
+    if (return_flag)
+      return;
     push_value(gather_value(expression_statement->expression));
   }
 
   void LLVMIRGenerator::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
-    double fp_val = atof(floating_point_literal->value.content.c_str());
-    push_value(create_lt_value(Value::make_number(fp_val)));
+    push_value(create_lt_value(Value::make_number(floating_point_literal->value)));
   }
 
   void LLVMIRGenerator::visitFunctionCall(FunctionCall* function_call) {
@@ -151,6 +165,10 @@ namespace LLVMToy {
       arg_types.push_back(toy_value_type);
     }
     llvm::Value* callee = gather_value(function_call->function);
+    if (!callee) {
+      const Token& tok = function_call->function->get_token();
+      cout << "Function expression at " << tok.line_number << ":" << tok.line_offset << " returned a nil value during compilation\n";
+    }
     llvm::FunctionType* fn_type = llvm::FunctionType::get(toy_value_type, arg_types, false);
     llvm::Value* unmasked_int = ir_builder->CreateAnd(callee, POINTER_HI_MASK);
     llvm::Value* unmasked_pointer = ir_builder->CreateIntToPtr(
@@ -161,32 +179,34 @@ namespace LLVMToy {
     push_value(ir_builder->CreateCall(fn_type, unmasked_pointer, arguments));
   }
 
-  void LLVMIRGenerator::visitFunctionDeclaration(FunctionDeclaration* function_declaration) {
+  void LLVMIRGenerator::visitFunctionExpression(FunctionExpression* function_expression) {
     llvm::Function* outer_function = ir_builder->GetInsertBlock()->getParent();
     vector<llvm::Type*> arg_types;
     LLVMScope* last_scope = current_scope;
     current_scope = current_scope->create_child();
-    for (int i = 0; i < function_declaration->arguments.size(); ++i) {
+    for (int i = 0; i < function_expression->arguments.size(); ++i) {
       arg_types.push_back(toy_value_type);
     }
     stringstream ss;
 
     llvm::FunctionType* fn_type = llvm::FunctionType::get(toy_value_type, arg_types, false);
-    llvm::Function* fn = llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, "", *llvm_module);
+    llvm::Function* fn = llvm::Function::Create(fn_type, llvm::Function::ExternalLinkage, function_expression->name, *llvm_module);
 
-    for (int i = 0; i < function_declaration->arguments.size(); ++i) {
-      current_scope->set_value(function_declaration->arguments[i].content, fn->getArg(i));
+    for (int i = 0; i < function_expression->arguments.size(); ++i) {
+      current_scope->set_value(function_expression->arguments[i].content, fn->getArg(i));
     }
 
     llvm::BasicBlock* body_block = llvm::BasicBlock::Create(*llvm_context, "", fn);
     ir_builder->SetInsertPoint(body_block);
 
-    for (int i = 0; i < function_declaration->body.size(); ++i) {
-      function_declaration->body[i]->accept(*this);
+    for (int i = 0; i < function_expression->body.size(); ++i) {
+      function_expression->body[i]->accept(*this);
     }
     
     ir_builder->SetInsertPoint(body_block);
-    if (!body_block->getTerminator()) {
+    if (return_flag) {
+      return_flag = false;
+    } else {
       ir_builder->CreateRet(create_lt_value(Value::make_nil()));
     }
     ir_builder->SetInsertPoint(&outer_function->back());
@@ -196,12 +216,16 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitIfStatement(IfStatement* if_statement) {
+    if (return_flag)
+      return;
     llvm::Value* condition = gather_value(if_statement->condition);
     llvm::Function* truthiness = llvm_module->getFunction("lt_builtin_truthy");
     llvm::Value* condition_truthy = ir_builder->CreateCall(
       truthiness,
       llvm::ArrayRef<llvm::Value*>{condition}
     );
+
+    int jump_count = 0;
     
     llvm::Value* boolean = ir_builder->CreateICmpEQ(condition_truthy, true_value);
     llvm::Function* outer_function = ir_builder->GetInsertBlock()->getParent();
@@ -216,7 +240,12 @@ namespace LLVMToy {
     for (int i = 0; i < if_statement->body.size(); ++i) {
       if_statement->body[i]->accept(*this);
     }
-    ir_builder->CreateBr(continue_block);
+    if (return_flag) {
+      return_flag = false;
+    } else {
+      ir_builder->CreateBr(continue_block);
+      jump_count += 1;
+    }
 
     // visiting the body could change the current block for ir_builder
     then_block = ir_builder->GetInsertBlock();
@@ -227,7 +256,18 @@ namespace LLVMToy {
     for (int i = 0; i < if_statement->else_branch.size(); ++i) {
       if_statement->else_branch[i]->accept(*this);
     }
-    ir_builder->CreateBr(continue_block);
+    if (return_flag) {
+      return_flag = false;
+    } else {
+      ir_builder->CreateBr(continue_block);
+      jump_count += 1;
+    }
+
+    // If both branches return, then we can set the return flag, and finish here
+    if (jump_count == 0) {
+      return_flag = true;
+      return;
+    }
 
     // as with then block, the insert point for ir_builder could change
     else_block = ir_builder->GetInsertBlock();
@@ -238,7 +278,7 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitIntegerLiteral(IntegerLiteral* integer_literal) {
-    push_value(create_lt_value(Value::make_number(atof(integer_literal->value.content.c_str()))));
+    push_value(create_lt_value(Value::make_number(integer_literal->value)));
   }
 
   void LLVMIRGenerator::visitReturnStatement(ReturnStatement* return_statement) {
@@ -249,10 +289,11 @@ namespace LLVMToy {
       ret = create_lt_value(Value::make_nil());
     }
     ir_builder->CreateRet(ret);
+    return_flag = true;
   }
 
   void LLVMIRGenerator::visitStringLiteral(StringLiteral* string_literal) {
-    push_value(create_lt_value(Value::make_string(string_literal->value.content)));
+    push_value(create_lt_value(Value::make_string(string_literal->value)));
   }
 
   void LLVMIRGenerator::visitUnaryOperator(UnaryOperator* unary_operator) {
@@ -264,25 +305,42 @@ namespace LLVMToy {
   }
 
   void LLVMIRGenerator::visitVariableDeclaration(VariableDeclaration* variable_declaration) {
+    if (return_flag)
+      return;
     llvm::Value* initial_value;
     if (variable_declaration->initializer) {
-      initial_value = gather_value(variable_declaration->initializer);
+      initial_value = gather_value(variable_declaration->initializer);      
     } else {
       initial_value = create_lt_value(Value::make_undefined());
     }
-    current_scope->set_value(variable_declaration->name.content, initial_value);
+    initial_value->setName(variable_declaration->name);
+    if (variable_declaration->is_closure) {
+      unsigned int index = closure_container->get_slot_for(variable_declaration->name);
+      llvm::Function* fn = llvm_module->getFunction("lt_builtin_closure_write");
+      ir_builder->CreateCall(fn, llvm::ArrayRef<llvm::Value*>{
+        create_lt_value(Value::make_generic_ptr((void*)closure_container)),
+        create_lt_value(Value::make_number((double)index)),
+        initial_value
+      });
+    } else {
+      current_scope->set_value(variable_declaration->name, initial_value);
+    }  
   }
 
   void LLVMIRGenerator::visitVariableReference(VariableReference* variable_reference) {
-    if (variable_reference->name.content == "puts") {
+    if (variable_reference->name == "puts") {
       push_value(create_lt_value(Value::make_function_ptr((void*)lt_builtin_puts)));
     } else {
-      LLVMScope::LookupResult res = current_scope->lookup_value(variable_reference->name.content);
-      if (res.depth != current_scope->depth) {
-        
+      if (variable_reference->is_closure) {
+        unsigned int index = closure_container->get_slot_for(variable_reference->name);
+        llvm::Function* fn = llvm_module->getFunction("lt_builtin_closure_read");
+        push_value(ir_builder-> CreateCall(fn, llvm::ArrayRef<llvm::Value*>{
+          create_lt_value(Value::make_generic_ptr((void*)closure_container)),
+          create_lt_value(Value::make_number((double)index))
+        }));
       } else {
-        push_value(res.value);
-      }      
+        push_value(current_scope->lookup_value(variable_reference->name).value);
+      }
     }
   }
 

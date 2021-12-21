@@ -8,7 +8,7 @@
 namespace LLVMToy {
   class BinaryOperator : public Expression {
     public:
-      BinaryOperator(const Token& op, Expression* left, Expression* right) {        
+      BinaryOperator(const Token& op, Expression* left, Expression* right) : Expression(op) {        
         this->left = left;
         this->right = right;
         this->op = Types::TokenToOperator.at(op.type);

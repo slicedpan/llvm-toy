@@ -8,14 +8,14 @@
 namespace LLVMToy {
   class VariableReference : public Expression {
     public:
-      VariableReference(const Token& name) {        
-        this->name = name;
+      VariableReference(const Token& token) : Expression(token) {        
+        this->name = token.content;
         this->is_closure = false;
       }
       bool assignable() { return true; }
       void accept(ASTVisitor& v);
       bool is_closure;
-      Token name;
+      string name;
   };
 }
 

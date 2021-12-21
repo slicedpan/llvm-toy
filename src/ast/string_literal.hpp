@@ -7,12 +7,11 @@
 namespace LLVMToy {
   class StringLiteral : public Expression {
     public:
-      StringLiteral(const Token& value) {
+      StringLiteral(const Token& token, string value) : Expression(token) {
         this->value = value;
       }
       void accept(ASTVisitor& v);
-    
-      Token value;
+      string value;
   };
 }
 

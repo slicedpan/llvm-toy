@@ -13,7 +13,7 @@ namespace LLVMToy {
       void visitExpressionStatement(ExpressionStatement*);
       void visitFloatingPointLiteral(FloatingPointLiteral*);
       void visitFunctionCall(FunctionCall*);
-      void visitFunctionDeclaration(FunctionDeclaration*);
+      void visitFunctionExpression(FunctionExpression*);
       void visitIfStatement(IfStatement*);
       void visitIntegerLiteral(IntegerLiteral*);
       void visitReturnStatement(ReturnStatement*);

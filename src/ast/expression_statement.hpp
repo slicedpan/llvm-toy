@@ -10,7 +10,7 @@
 namespace LLVMToy {
   class ExpressionStatement : public Statement {
     public:
-      ExpressionStatement(Expression* expression) : expression(expression) {}
+      ExpressionStatement(const Token& token, Expression* expression) : expression(expression), Statement(token) {}
       ~ExpressionStatement() {
         delete this->expression;
       }

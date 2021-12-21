@@ -10,7 +10,7 @@
 namespace LLVMToy {
   class IfStatement : public Statement {
     public:
-      IfStatement(Expression* condition, std::vector<Statement*> body, std::vector<Statement*> else_branch) {        
+      IfStatement(const Token& token, Expression* condition, std::vector<Statement*> body, std::vector<Statement*> else_branch) : Statement(token) {        
         this->condition = condition;        
         this->body = body;        
         this->else_branch = else_branch;        

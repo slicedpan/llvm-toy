@@ -38,7 +38,7 @@ namespace LLVMToy {
 
   void ASTEvaluator::visitAssignment(Assignment* assignment) {
     VariableReference* ref = (VariableReference*)assignment->left;
-    current_scope->set_variable(ref->name.content, gather_value(assignment->right));
+    current_scope->set_variable(ref->name, gather_value(assignment->right));
   }
 
   void ASTEvaluator::visitBinaryOperator(BinaryOperator* binary_operator) {
@@ -48,7 +48,7 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitBooleanLiteral(BooleanLiteral* boolean_literal) {
-    push_value(Value::make_bool(boolean_literal->value.content == "true"));
+    push_value(Value::make_bool(boolean_literal->value));
   }
 
   void ASTEvaluator::visitExpressionStatement(ExpressionStatement* expression_statement) {
@@ -56,7 +56,7 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
-    Value fp_value = Value::make_number(atof(floating_point_literal->value.content.c_str()));
+    Value fp_value = Value::make_number(floating_point_literal->value);
     push_value(fp_value);   
   }
 
@@ -78,12 +78,12 @@ namespace LLVMToy {
     delete child_scope;
   }
 
-  void ASTEvaluator::visitFunctionDeclaration(FunctionDeclaration* function_declaration) {
+  void ASTEvaluator::visitFunctionExpression(FunctionExpression* function_expression) {
     vector<string> arguments;
-    for (int i = 0; i < function_declaration->arguments.size(); ++i) {
-      arguments.push_back(function_declaration->arguments[i].content);
+    for (int i = 0; i < function_expression->arguments.size(); ++i) {
+      arguments.push_back(function_expression->arguments[i].content);
     }
-    Function* function = new Function(arguments, function_declaration->body);
+    Function* function = new Function(arguments, function_expression->body);
     Value function_value = Value::make_function_ptr(function);
     push_value(function_value);
   }
@@ -110,7 +110,7 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitIntegerLiteral(IntegerLiteral* integer_literal) {
-    push_value(Value::make_number(atof(integer_literal->value.content.c_str())));
+    push_value(Value::make_number(integer_literal->value));
   }
 
   void ASTEvaluator::visitReturnStatement(ReturnStatement* return_statement) {
@@ -123,7 +123,7 @@ namespace LLVMToy {
   }
 
   void ASTEvaluator::visitStringLiteral(StringLiteral* string_literal) {
-    push_value(Value::make_string(string_literal->value.content));
+    push_value(Value::make_string(string_literal->value));
   }
 
   void ASTEvaluator::visitUnaryOperator(UnaryOperator* unary_operator) {
@@ -133,13 +133,13 @@ namespace LLVMToy {
   void ASTEvaluator::visitVariableDeclaration(VariableDeclaration* variable_declaration) {
     if (variable_declaration->initializer) {
       variable_declaration->initializer->accept(*this);
-      current_scope->set_variable(variable_declaration->name.content, pop_value());
+      current_scope->set_variable(variable_declaration->name, pop_value());
     } else {
-      current_scope->set_variable(variable_declaration->name.content, nil_value);
+      current_scope->set_variable(variable_declaration->name, nil_value);
     }
   }
 
   void ASTEvaluator::visitVariableReference(VariableReference* variable_reference) {
-    push_value(current_scope->lookup_variable(variable_reference->name.content));
+    push_value(current_scope->lookup_variable(variable_reference->name));
   }
 }

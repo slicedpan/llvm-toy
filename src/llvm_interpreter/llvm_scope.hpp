@@ -19,7 +19,8 @@ namespace LLVMToy {
       LLVMScope(LLVMScope* parent, uint16_t depth) {
         this->parent = parent;
         this->depth = depth;
-        parent->children.push_back(this);
+        if (parent)
+          parent->children.push_back(this);
       }
       LLVMScope() : LLVMScope(nullptr, 0) {}
       LLVMScope* create_child() {

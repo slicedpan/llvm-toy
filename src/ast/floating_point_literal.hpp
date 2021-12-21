@@ -7,12 +7,11 @@
 namespace LLVMToy {
   class FloatingPointLiteral : public Expression {
     public:
-      FloatingPointLiteral(const Token& value) {
+      FloatingPointLiteral(const Token& token, double value) : Expression(token) {
         this->value = value;
       }
-      void accept(ASTVisitor& v);
-  
-      Token value;
+      void accept(ASTVisitor& v);  
+      double value;
   };
 }
 

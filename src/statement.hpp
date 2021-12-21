@@ -5,7 +5,8 @@
 
 namespace LLVMToy {
   class Statement : public ASTNode {
-    public:    
+    public:
+      Statement(const Token& token) : ASTNode(token) {}    
       virtual void debug_print(int indent);
       virtual void accept(ASTVisitor& v) {};
     protected:

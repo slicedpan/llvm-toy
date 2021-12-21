@@ -15,6 +15,7 @@ namespace llvm {
 namespace LLVMToy {
   class Scope;
   class LLVMScope;
+  class ClosureContainer;
 
   class LLVMIRGenerator : public ASTVisitor {
     public:
@@ -25,7 +26,7 @@ namespace LLVMToy {
       void visitExpressionStatement(ExpressionStatement*);
       void visitFloatingPointLiteral(FloatingPointLiteral*);
       void visitFunctionCall(FunctionCall*);
-      void visitFunctionDeclaration(FunctionDeclaration*);
+      void visitFunctionExpression(FunctionExpression*);
       void visitIfStatement(IfStatement*);
       void visitIntegerLiteral(IntegerLiteral*);
       void visitReturnStatement(ReturnStatement*);
@@ -61,6 +62,8 @@ namespace LLVMToy {
       llvm::ArrayRef<unsigned int> value_ref;
       LLVMScope* root_scope;
       LLVMScope* current_scope;
+      ClosureContainer* closure_container;
+      bool return_flag;
   };
 }
 #endif

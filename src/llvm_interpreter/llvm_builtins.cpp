@@ -10,6 +10,7 @@
 #include "../operator_types.hpp"
 #include "../interpreter/operator_action.hpp"
 #include "../interpreter/scope.hpp"
+#include "closure_container.hpp"
 #include <cstdint>
 
 LLVMToy::Value __attribute__((aligned(8))) lt_builtin_set_var(LLVMToy::Value scope_as_val, LLVMToy::Value name, LLVMToy::Value value) {
@@ -54,6 +55,17 @@ LLVMToy::Value __attribute__((aligned(8))) lt_builtin_truthy(LLVMToy::Value valu
   return LLVMToy::Value::make_bool(value.is_truthy());
 }
 
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_closure_read(LLVMToy::Value closure_container_ptr, LLVMToy::Value index) {
+  LLVMToy::ClosureContainer* container = (LLVMToy::ClosureContainer*)closure_container_ptr.pointer_value();
+  return container->get_slot_value((unsigned int)index.float_value);
+}
+
+LLVMToy::Value __attribute__((aligned(8))) lt_builtin_closure_write(LLVMToy::Value closure_container_ptr, LLVMToy::Value index, LLVMToy::Value value) {
+  LLVMToy::ClosureContainer* container = (LLVMToy::ClosureContainer*)closure_container_ptr.pointer_value();
+  container->set_slot_value((unsigned int)index.float_value, value);
+  return value;
+}
+
 namespace LLVMToy {
   void add_va_builtin(llvm::Module* module, llvm::Type* toy_struct_type, string name) {
     
@@ -77,5 +89,7 @@ namespace LLVMToy {
     add_builtin(module, toy_struct_type, "lt_builtin_set_var", 3);
     add_builtin(module, toy_struct_type, "lt_builtin_puts2", 2);
     add_builtin(module, toy_struct_type, "lt_builtin_puts3", 3);
+    add_builtin(module, toy_struct_type, "lt_builtin_closure_read", 2);
+    add_builtin(module, toy_struct_type, "lt_builtin_closure_write", 3);
   }
 }

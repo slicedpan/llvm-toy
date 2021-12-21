@@ -1,19 +1,13 @@
-function outer() {
-  var x = "value"
-  function middle() {
-    function inner() {
-      puts(x)
+function foo(n) {
+  if (n == 1) {
+    puts("1")
+  } else {
+    foo = function(n) {
+      puts("bar")
     }
-
-    puts("create inner closure")
-    return inner
   }
-
-  puts("return from outer")
-  x = "foo"
-  return middle
 }
 
-var mid = outer()
-var in = mid()
-in()
+puts(foo(1))
+puts(foo(2))
+puts(foo(2))

@@ -6,6 +6,7 @@
 namespace LLVMToy {
   class Expression : public ASTNode {
     public:
+      Expression(const Token& token) : ASTNode(token) {};
       virtual void debug_print(int indent);
       virtual bool assignable() { return false; }
       virtual void accept(ASTVisitor& v) {};

@@ -59,6 +59,7 @@ src/llvm_interpreter/llvm_interpreter.cpp
 src/llvm_interpreter/llvm_jit_compiler.cpp
 src/llvm_interpreter/llvm_builtins.cpp
 src/llvm_interpreter/debug_printer.cpp
+src/character_class.cpp
 ${FLEX_Lexer_OUTPUTS}
 )
 

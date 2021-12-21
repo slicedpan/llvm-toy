@@ -89,7 +89,7 @@ namespace LLVMToy {
   }
 
   void ASTPrinter::visitBooleanLiteral(BooleanLiteral* boolean_literal) {
-    push_string(boolean_literal->value.content);
+    push_string(boolean_literal->get_token().content);
   }
 
   void ASTPrinter::visitExpressionStatement(ExpressionStatement* expression_statement) {
@@ -100,7 +100,7 @@ namespace LLVMToy {
 
   void ASTPrinter::visitFloatingPointLiteral(FloatingPointLiteral* floating_point_literal) {
     std::stringstream ss;
-    ss << floating_point_literal->value.content << " (fp)";
+    ss << floating_point_literal->value << " (fp)";
     push_string(ss.str());
   }
 
@@ -112,10 +112,16 @@ namespace LLVMToy {
     push_string(ss.str());
   }
 
-  void ASTPrinter::visitFunctionDeclaration(FunctionDeclaration* function_declaration) {
+  void ASTPrinter::visitFunctionExpression(FunctionExpression* function_expression) {
     std::stringstream ss;
-    ss << "FUNCTION_DECL\n" << "body:\n";
-    ss << gather_outputs(function_declaration->body);
+    ss << "FUNCTION_EXPR (";
+    for (int i = 0; i < function_expression->arguments.size(); ++i) {
+      if (i > 0)
+        ss << ", ";
+      ss << function_expression->arguments[i].content;
+    }
+    ss << ")\n" << "body:\n";
+    ss << gather_outputs(function_expression->body);
     push_string(ss.str());
   }
 
@@ -130,7 +136,7 @@ namespace LLVMToy {
 
   void ASTPrinter::visitIntegerLiteral(IntegerLiteral* integer_literal) {
     std::stringstream ss;
-    ss << integer_literal->value.content << " (int)";
+    ss << integer_literal->value << " (int)";
     push_string(ss.str());
   }
 
@@ -141,7 +147,7 @@ namespace LLVMToy {
   }
 
   void ASTPrinter::visitStringLiteral(StringLiteral* string_literal) {
-    push_string(string_literal->value.content);
+    push_string(string_literal->value);
   }
 
   void ASTPrinter::visitUnaryOperator(UnaryOperator* unary_operator) {
@@ -158,7 +164,7 @@ namespace LLVMToy {
     } else {
       ss << "VARIABLE_DECL(";
     }
-    ss << variable_declaration->name.content << ")\n";
+    ss << variable_declaration->name << ")\n";
     ss << "initializer:\n" << gather_output(variable_declaration->initializer);
     push_string(ss.str());
   }
@@ -166,9 +172,9 @@ namespace LLVMToy {
   void ASTPrinter::visitVariableReference(VariableReference* variable_reference) {
     std::stringstream ss;
     if (variable_reference->is_closure) {
-      ss << "CLOSURE_VAR_REF(" << variable_reference->name.content << ")\n";
+      ss << "CLOSURE_VAR_REF(" << variable_reference->name << ")\n";
     } else {
-      ss << "VAR_REF(" << variable_reference->name.content << ")\n";  
+      ss << "VAR_REF(" << variable_reference->name << ")\n";  
     } 
     push_string(ss.str());
   }

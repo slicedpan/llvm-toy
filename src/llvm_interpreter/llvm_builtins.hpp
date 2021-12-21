@@ -24,6 +24,8 @@ extern "C" DLLEXPORT LLVMToy::Value lt_builtin_binop(LLVMToy::Value, LLVMToy::Va
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_unop(LLVMToy::Value, LLVMToy::Value);
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_truthy(LLVMToy::Value);
 extern "C" DLLEXPORT LLVMToy::Value lt_builtin_build_pointer(uint8_t, void*);
+extern "C" DLLEXPORT LLVMToy::Value lt_builtin_closure_read(LLVMToy::Value, LLVMToy::Value);
+extern "C" DLLEXPORT LLVMToy::Value lt_builtin_closure_write(LLVMToy::Value, LLVMToy::Value, LLVMToy::Value);
 
 namespace LLVMToy {
   class LLVMBuiltins {

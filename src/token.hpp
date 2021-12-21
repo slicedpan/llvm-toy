@@ -11,7 +11,8 @@ namespace LLVMToy {
 
   struct Token {
     Types::Token type;
-    int line_number;    
+    unsigned int line_number;
+    unsigned int line_offset;
     string content;
   };
 

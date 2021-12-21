@@ -93,9 +93,9 @@ else { LexerFunctions::add_keyword_else(p, yytext, yylineno); }
 
 true|false { LexerFunctions::add_boolean(p, yytext, yylineno); }
 
-{DIGIT}+.{DIGIT}+ { LexerFunctions::add_floating_point(p, yytext, yylineno); }
+[0-9]+\.[0-9]+ { LexerFunctions::add_floating_point(p, yytext, yylineno); }
 
-{DIGIT}+ { LexerFunctions::add_integer(p, yytext, yylineno); }
+[0-9]+ { LexerFunctions::add_integer(p, yytext, yylineno); }
 
 == { LexerFunctions::add_operator_double_equals(p, yytext, yylineno); }
 

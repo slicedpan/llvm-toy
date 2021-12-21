@@ -2,7 +2,6 @@
 #include "token.hpp"
 #include "expression.hpp"
 #include "ast/variable_declaration.hpp"
-#include "ast/function_declaration.hpp"
 #include "ast/expression_statement.hpp"
 #include "ast/string_literal.hpp"
 #include "ast/boolean_literal.hpp"
@@ -15,6 +14,7 @@
 #include "ast/function_call.hpp"
 #include "ast/if_statement.hpp"
 #include "ast/return_statement.hpp"
+#include "ast/function_expression.hpp"
 #include "parser_error.hpp"
 
 namespace LLVMToy {
@@ -39,13 +39,12 @@ namespace LLVMToy {
     }
     consume();
     const Token& id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
-    Expression* expression = nullptr;
+    VariableDeclaration* var_decl = new VariableDeclaration(id_token, nullptr);
+    current_scope->add_declaration(id_token.content, var_decl);
     if (peek().type == Types::Token::OperatorEquals) {
       consume();
-      expression = parse_expression(ParserPrecedence::Parentheses);
+      var_decl->initializer = parse_expression(ParserPrecedence::Parentheses);
     }
-    VariableDeclaration* var_decl = new VariableDeclaration(id_token, expression);
-    current_scope->add_declaration(id_token.content, var_decl);
     return var_decl;
   }
 
@@ -53,7 +52,7 @@ namespace LLVMToy {
     if (peek().type != Types::Token::KeywordIf) {
       return parse_return_statement();
     }
-    consume();
+    Token if_token = consume();
     consume_type(Types::Token::LeftParen, "Expected '(' after if keyword");
     Expression* condition = parse_expression();
     consume_type(Types::Token::RightParen, "Expected ')' after condition in if statement");
@@ -81,7 +80,7 @@ namespace LLVMToy {
           else_branch.push_back(parse_variable_declaration());
       }
     }
-    return new IfStatement(condition, body, else_branch);
+    return new IfStatement(if_token, condition, body, else_branch);
   }
 
   const Token& Parser::consume_type(Types::Token type, string error_message) {
@@ -98,22 +97,12 @@ namespace LLVMToy {
     return ret;
   }
 
-  Expression* Parser::parse_function_declaration(int max_precedence) {
-    if (peek().type != Types::Token::KeywordFunction) {
-      return parse_unary_expression(max_precedence);      
-    }
-    consume();
-    Token id_token;
-    // Sentinel value
-    id_token.type = Types::Token::EndOfFile;
-    if (peek().type != Types::Token::LeftParen) {
-      id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
-    }
+  vector<Token> Parser::parse_function_parameters() {
+    std::vector<Token> parameters;
     consume_type(Types::Token::LeftParen, "Expected '('");
-    std::vector<Token> arguments;
     if (peek().type != Types::Token::RightParen) {
       for(;;) {
-        arguments.emplace_back(consume_type(Types::Token::Identifier, "Expected identifier for function argument"));
+        parameters.emplace_back(consume_type(Types::Token::Identifier, "Expected identifier for function argument"));
         if (peek().type == Types::Token::Comma) {
           consume();
         } else {
@@ -124,30 +113,41 @@ namespace LLVMToy {
     } else {
       consume();
     }
+    return parameters;
+  }
+
+  Statement* Parser::parse_function_declaration() {
+    if (peek().type != Types::Token::KeywordFunction) {
+      return parse_expression_statement();      
+    }
+    Token fn_token = consume();
+    Token id_token = consume_type(Types::Token::Identifier, "Expected valid identifier");
+    std::vector<Token> parameters = parse_function_parameters();
     consume_type(Types::Token::LeftBrace, "Expected function block (missing '{')");
+    VariableDeclaration* var_decl = new VariableDeclaration(id_token, nullptr);
+    current_scope->add_declaration(id_token.content, var_decl);
     LexicalScope* last_scope = current_scope;
     current_scope = current_scope->create_child();
-    Expression* ret = new FunctionDeclaration(arguments, parse_block());
+    Expression* function_expression = new FunctionExpression(fn_token, parameters, parse_block(), id_token.content);
+    var_decl->initializer = function_expression;
     delete current_scope;
     current_scope = last_scope;
-    if (id_token.type == Types::Token::Identifier) {
-      ret = new Assignment(new VariableReference(id_token), ret);
-    }
     consume_type(Types::Token::RightBrace, "Expected '}' at end of function body");
-    return ret;
+    return var_decl;
   }
 
   Statement* Parser::parse_expression_statement() {
     Expression* expression = parse_expression();
-    return new ExpressionStatement(expression);
+    return new ExpressionStatement(expression->get_token(), expression);
   }
 
   Statement* Parser::parse_return_statement() {
     if (peek().type != Types::Token::KeywordReturn && peek().type != Types::Token::KeywordReturnEmpty) {
-      return parse_expression_statement();
+      return parse_function_declaration();
     }
     Token return_token = consume();
     return new ReturnStatement(
+      return_token,
       return_token.type == Types::Token::KeywordReturnEmpty ? nullptr : parse_expression()
     );
   }
@@ -178,8 +178,8 @@ namespace LLVMToy {
             if (!expr->assignable()) {
               throw ParserError("Can't assign to this expression");
             }
-            consume();
-            next_expr = new Assignment(expr, parse_expression(ParserPrecedence::Assign));
+            Token assignment_token = consume();
+            next_expr = new Assignment(assignment_token, expr, parse_expression(ParserPrecedence::Assign));
           }
           break;
         case Types::Token::OperatorDoubleEquals:
@@ -189,8 +189,7 @@ namespace LLVMToy {
           }
           break;
         case Types::Token::LeftParen:
-          consume();
-          next_expr = new FunctionCall(expr, parse_argument_expressions());
+          next_expr = new FunctionCall(consume(), expr, parse_argument_expressions());
           consume_type(Types::Token::RightParen, "Expected ')'");
           break;
       }
@@ -217,12 +216,29 @@ namespace LLVMToy {
 
   Expression* Parser::parse_parenthesised_expression(int max_precedence) {
     if (peek().type != Types::Token::LeftParen) {
-      return parse_function_declaration(max_precedence);
+      return parse_function_expression(max_precedence);
     }
     consume();
     Expression* ret = parse_expression(max_precedence);
     consume_type(Types::Token::RightParen, "Expected ')'");
     return ret;
+  }
+
+  Expression* Parser::parse_function_expression(int max_precedence) {
+    if (peek().type != Types::Token::KeywordFunction) {
+      return parse_unary_expression(max_precedence);
+    }
+    string function_name = "anon_fn";
+    Token fn_token = consume(); //function keyword
+    if (peek().type != Types::Token::LeftParen) {
+      Token id_token = consume_type(Types::Token::Identifier, "Expected identifier or start of parameter list");
+      function_name = id_token.content;
+    }
+    std::vector<Token> parameters = parse_function_parameters();
+    consume_type(Types::Token::LeftBrace, "Expected '{' at start of function body");
+    Expression* function_expression = new FunctionExpression(fn_token, parameters, parse_block(), function_name);
+    consume_type(Types::Token::RightBrace, "Expected '}' at end of function body");
+    return function_expression;
   }
 
   Expression* Parser::parse_identifier(int max_precedence) {
@@ -243,16 +259,16 @@ namespace LLVMToy {
     const Token& tok = peek();
     switch (tok.type) {
       case Types::Token::String:
-        ret = new StringLiteral(tok);
+        ret = new StringLiteral(tok, tok.content);
         break;
       case Types::Token::FloatingPoint:
-        ret = new FloatingPointLiteral(tok);
+        ret = new FloatingPointLiteral(tok, atof(tok.content.c_str()));
         break;
       case Types::Token::Integer:
-        ret = new IntegerLiteral(tok);
+        ret = new IntegerLiteral(tok, atoi(tok.content.c_str()));
         break;
       case Types::Token::Boolean:
-        ret = new BooleanLiteral(tok);
+        ret = new BooleanLiteral(tok, tok.content.compare("true") == 0);
         break;
       default:
         return parse_identifier(max_precedence);

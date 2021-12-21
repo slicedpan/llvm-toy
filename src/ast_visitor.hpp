@@ -7,7 +7,7 @@
 #include "ast/expression_statement.hpp"
 #include "ast/floating_point_literal.hpp"
 #include "ast/function_call.hpp"
-#include "ast/function_declaration.hpp"
+#include "ast/function_expression.hpp"
 #include "ast/if_statement.hpp"
 #include "ast/integer_literal.hpp"
 #include "ast/return_statement.hpp"
@@ -25,7 +25,7 @@ namespace LLVMToy {
       virtual void visitExpressionStatement(ExpressionStatement*) {};
       virtual void visitFloatingPointLiteral(FloatingPointLiteral*) {};
       virtual void visitFunctionCall(FunctionCall*) {};
-      virtual void visitFunctionDeclaration(FunctionDeclaration*) {};
+      virtual void visitFunctionExpression(FunctionExpression*) {};
       virtual void visitIfStatement(IfStatement*) {};
       virtual void visitIntegerLiteral(IntegerLiteral*) {};
       virtual void visitReturnStatement(ReturnStatement*) {};

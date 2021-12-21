@@ -7,7 +7,7 @@
 namespace LLVMToy {
   class Assignment : public Expression {
     public:
-      Assignment(Expression* left, Expression* right) {
+      Assignment(const Token& token, Expression* left, Expression* right) : Expression(token) {
         this->left = left;
         this->right = right;
       }

@@ -25,8 +25,8 @@ namespace LLVMToy {
     v.visitFunctionCall(this);
   }
 
-  void FunctionDeclaration::accept(ASTVisitor& v) {
-    v.visitFunctionDeclaration(this);
+  void FunctionExpression::accept(ASTVisitor& v) {
+    v.visitFunctionExpression(this);
   }
 
   void IfStatement::accept(ASTVisitor& v) {

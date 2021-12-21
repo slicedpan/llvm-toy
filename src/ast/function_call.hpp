@@ -7,7 +7,7 @@
 namespace LLVMToy {
   class FunctionCall : public Expression {
     public:
-      FunctionCall(Expression* function, std::vector<Expression*> arguments) {
+      FunctionCall(const Token& token, Expression* function, std::vector<Expression*> arguments) : Expression(token) {
         this->function = function;
         this->arguments = arguments;
       }
